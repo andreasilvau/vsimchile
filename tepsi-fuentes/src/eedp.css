@@ -4,7 +4,7 @@
 .eedp-wrap{max-width:1180px;margin:0 auto;padding:20px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:16px}
 .eedp-intro h2{font-family:var(--display);font-weight:700;font-size:22px;margin:0 0 6px;color:var(--ink)}
 .eedp-intro p{margin:0;font-size:14px;color:var(--muted);max-width:76ch}
-.eedp-grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px;align-items:start}
+.eedp-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
 .eedp-col{display:flex;flex-direction:column;gap:16px;min-width:0}
 .eedp-res{position:sticky;top:12px}
 @media (max-width:860px){.eedp-grid{grid-template-columns:1fr}.eedp-res{position:static}}
@@ -46,7 +46,7 @@
 .eedp-msg{font-size:13px;color:var(--wait);background:var(--wait-soft);border-radius:8px;padding:8px 10px;margin:8px 0 0}
 .eedp-supuesto{font-size:12px;color:var(--muted);margin:10px 0 0}
 
-.eedp-visor{position:relative;background:var(--escena);border-radius:10px;overflow:hidden;height:320px}
+.eedp-visor{position:relative;background:var(--escena);border-radius:10px;overflow:hidden;height:400px}
 .eedp-visor canvas{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
 .eedp-visor-msg{position:absolute;inset:auto 0 12px 0;margin:0;text-align:center;font-size:13px;color:var(--muted)}
 .eedp-visor-msg.oculto{display:none}

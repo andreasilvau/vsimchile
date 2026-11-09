@@ -218,17 +218,42 @@ function iniciarVisor(){
   }
   window.EEDP_DEMO=demo;
 
+  /* Superficie de apoyo: colchoneta suave bajo el bebé */
+  const colchGeo=new THREE.PlaneGeometry(1.2,0.8);
+  const colchMat=new THREE.MeshStandardMaterial({color:0xc8dce8,roughness:0.85,metalness:0.0});
+  const colchoneta=new THREE.Mesh(colchGeo,colchMat);
+  colchoneta.rotation.x=-Math.PI/2;
+  colchoneta.position.y=-0.005;
+  colchoneta.receiveShadow=true;
+  acostar.add(colchoneta);
+  /* Borde sutil de la colchoneta */
+  const bordeGeo=new THREE.PlaneGeometry(1.28,0.88);
+  const bordeMat=new THREE.MeshStandardMaterial({color:0xa8c4d8,roughness:0.9,metalness:0.0});
+  const borde=new THREE.Mesh(bordeGeo,bordeMat);
+  borde.rotation.x=-Math.PI/2;
+  borde.position.y=-0.008;
+  acostar.add(borde);
+  /* Piso de fondo */
+  const pisoGeo=new THREE.PlaneGeometry(4,4);
+  const pisoMat=new THREE.MeshStandardMaterial({color:0xe0ecf4,roughness:0.95,metalness:0.0});
+  const piso=new THREE.Mesh(pisoGeo,pisoMat);
+  piso.rotation.x=-Math.PI/2;
+  piso.position.y=-0.012;
+  piso.receiveShadow=true;
+  escena.add(piso);
+
   loader.load('models/lactante-8m.glb',g=>{
     const m=g.scene;
     const caja=new THREE.Box3().setFromObject(m);
     const centro=caja.getCenter(new THREE.Vector3()),alto=caja.getSize(new THREE.Vector3()).y;
     m.position.sub(centro);
+    m.position.y+=alto*0.5; /* apoyado sobre la colchoneta */
     acostar.add(m);
     m.traverse(o=>{if(o.isBone){H[o.name]=o;REST[o.name]=o.quaternion.clone();}if(o.isSkinnedMesh)o.frustumCulled=false;});
     for(const k in POSES_DEMO)for(const [b] of POSES_DEMO[k])if(!H[b]){/* hueso ausente: se ignora */}
-    const d=alto*1.35;distancia=d;
-    cam.position.set(0,d,d*0.12);cam.lookAt(0,0,0);
-    if(ctl){ctl.target.set(0,0,0);ctl.update();}
+    const d=alto*1.5;distancia=d;
+    cam.position.set(0,d*0.8,d*0.6);cam.lookAt(0,alto*0.15,0);
+    if(ctl){ctl.target.set(0,alto*0.15,0);ctl.update();}
     fijar(BASE);
     msg.classList.add('oculto');
     ajustar();
