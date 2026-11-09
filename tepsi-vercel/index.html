@@ -3072,6 +3072,37 @@ $('#eedpBloques').addEventListener('toggle',e=>{
 $('#eedpEjemplo').onclick=cargarEjemplo;
 $('#eedpLimpiar').onclick=()=>{for(const k of Object.keys(R))delete R[k];cerrados.clear();refrescar();};
 
+
+/* Ropa del lactante: se pinta dentro de la misma malla del cuerpo, como grupos de materiales.
+   Así la ropa usa exactamente la piel y el esqueleto del cuerpo, sin mallas extra. */
+function vestirLactante(raiz){
+  let cuerpo=null;
+  raiz.traverse(o=>{if(o.isSkinnedMesh&&o.skeleton&&o.geometry.attributes.skinIndex&&(!cuerpo||o.geometry.attributes.position.count>cuerpo.geometry.attributes.position.count))cuerpo=o;});
+  if(!cuerpo)return;
+  const geo=cuerpo.geometry,pos=geo.attributes.position,SI=geo.attributes.skinIndex,SW=geo.attributes.skinWeight;
+  const nombres=cuerpo.skeleton.bones.map(b=>b.name);
+  const comp=(A,i,k)=>k===0?A.getX(i):k===1?A.getY(i):k===2?A.getZ(i):A.getW(i);
+  const clase=new Uint8Array(pos.count); /* 0 piel, 1 pañal, 2 pelele */
+  for(let i=0;i<pos.count;i++){let mw=-1,mb=0;for(let k=0;k<4;k++){const w=comp(SW,i,k);if(w>mw){mw=w;mb=comp(SI,i,k);}}
+    const n=nombres[mb]||'';if(/^(pelvis|upperleg)/.test(n))clase[i]=1;else if(/^(spine0[1-5]|clavicle)/.test(n))clase[i]=2;}
+  const src=geo.index?Array.from(geo.index.array):Array.from({length:pos.count},(_,i)=>i);
+  const grupos=[[],[],[]];
+  for(let t=0;t<src.length;t+=3){
+    const a=src[t],b=src[t+1],c=src[t+2];
+    const k=(clase[a]===clase[b]&&clase[b]===clase[c])?clase[a]:0;
+    grupos[k].push(a,b,c);
+  }
+  geo.setIndex([...grupos[0],...grupos[1],...grupos[2]]);
+  geo.clearGroups();
+  let ini=0;
+  for(let k=0;k<3;k++){const n=grupos[k].length;if(n){geo.addGroup(ini,n,k);}ini+=n;}
+  const base=cuerpo.material;
+  /* skinning:true es obligatorio: sin él la prenda se dibuja en pose de reposo y no sigue al bebé. */
+  const pañal=new THREE.MeshStandardMaterial({color:0xf3f5f7,roughness:.85,side:THREE.DoubleSide,skinning:true});
+  const pelele=new THREE.MeshStandardMaterial({color:0x8fd3ef,roughness:.85,side:THREE.DoubleSide,skinning:true});
+  cuerpo.material=[base,pañal,pelele];
+}
+
 /* Visor 3D del lactante (models/lactante-8m.glb, junto al index.html). */
 function iniciarVisor(){
   const cv=document.getElementById('eedpCanvas'),msg=document.getElementById('eedpVisorMsg');
@@ -3096,6 +3127,7 @@ function iniciarVisor(){
     const centro=caja.getCenter(new THREE.Vector3()),alto=caja.getSize(new THREE.Vector3()).y;
     m.position.sub(centro);
     escena.add(m);
+    try{vestirLactante(m);}catch(e){console.error(e);}
     const d=alto*1.35;
     cam.position.set(0,alto*0.12,d);cam.lookAt(0,0,0);
     if(ctl){ctl.target.set(0,0,0);ctl.update();}
