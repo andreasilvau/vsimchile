@@ -1,0 +1,120 @@
+<header class="topbar"><div class="in">
+  <img src="data:image/webp;base64,__LOGO__" alt="Centro de Simulación USS">
+  <div class="tit"><div class="sub" id="topSub">Centro de Simulación USS</div><h1 id="topTit">Simulación pediátrica 3D</h1></div>
+  <button class="inicio-btn" id="docenteBtn" aria-label="Sección docente" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="m13.5 6.5 4 4"/></svg>Docente</button>
+  <button class="inicio-btn" id="inicioBtn" aria-label="Volver al inicio" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 9.8V20h13V9.8"/></svg>Inicio</button>
+</div></header>
+__PORTADA__
+__DOCENTE__
+<div class="app" id="appTepsi" hidden>
+  <div class="visor" id="visor">
+    <div class="cargando" id="cargando">Cargando niño 3D…</div>
+  </div>
+
+  <nav class="etapas flota" id="etapas" aria-label="Etapas del caso"></nav>
+
+  <div class="hud hud-tl">
+    <button class="caso-btn flota" id="casoBtn" aria-controls="pauta"><span id="casoNom">Caso</span><small id="casoEdad"></small></button>
+    <div class="chip estado" id="estado"><i></i><span id="estadoTxt">Esperando</span></div>
+  </div>
+  <div class="hud hud-tr">
+    <div class="exp-wrap">
+      <button class="ibtn flota" id="expBtn" aria-expanded="false" aria-controls="expPop" title="Expresiones del rostro">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5a4.5 4.5 0 0 0 7 0"/><path d="M9 9.5h.01M15 9.5h.01"/></svg><span class="txt">Rostro</span></button>
+      <div class="exp-pop flota" id="expPop" role="group" aria-label="Expresiones del rostro" hidden>
+        <button class="exp-b" data-x="neutral" aria-pressed="true"><span aria-hidden="true">😐</span>Neutral</button>
+        <button class="exp-b" data-x="sonrisa" aria-pressed="false"><span aria-hidden="true">🙂</span>Sonrisa</button>
+        <button class="exp-b" data-x="alegria" aria-pressed="false"><span aria-hidden="true">😄</span>Alegría</button>
+        <button class="exp-b" data-x="enojo" aria-pressed="false"><span aria-hidden="true">😠</span>Enojo</button>
+        <button class="exp-b" data-x="miedo" aria-pressed="false"><span aria-hidden="true">😨</span>Miedo</button>
+        <button class="exp-b" data-x="sorpresa" aria-pressed="false"><span aria-hidden="true">😮</span>Sorpresa</button>
+      </div>
+    </div>
+    <button class="ibtn flota" id="vozBtn" aria-pressed="true" title="Escuchar voces">
+      <svg class="on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a10 10 0 0 1 0 14"/></svg>
+      <svg class="off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="m22 9-6 6M16 9l6 6"/></svg>
+      <span class="txt">Voz</span></button>
+    <button class="ibtn flota pauta-btn" id="pautaBtn" aria-controls="pauta" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span class="txt">Pauta</span></button>
+  </div>
+  <div class="chip crono" id="crono" hidden>0,0 s</div>
+  <div class="chip medida" id="medida" hidden></div>
+  <div class="chip pista" id="pista">Arrastra para girar · pellizca para acercar</div>
+
+  <section class="mesa flota" id="mesa" hidden aria-label="Mesa de evaluación">
+    <div class="mesa-top"><span class="lbl" id="mesaTit">Mesa de evaluación</span><button id="mesaMin" aria-expanded="true">Ocultar</button></div>
+    <div class="hoja" id="hoja"></div>
+  </section>
+
+  <div class="dialogo" id="dialogo" aria-live="polite"></div>
+
+  <!-- 1. Consulta -->
+  <section class="panel p-lado flota plegable" id="pConsulta" aria-label="Consulta">
+    <div class="panel-cab"><h2 id="cTit">Consulta</h2><button class="minbtn" type="button" data-min aria-expanded="true" aria-label="Minimizar panel" title="Minimizar panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button></div>
+    <div class="tabs" role="tablist"><button role="tab" id="tabEnt" aria-selected="true">Entrevista</button><button role="tab" id="tabDat" aria-selected="false">Datos del niño/a</button></div>
+    <div class="panel-cuerpo">
+      <div id="cEnt">
+        <div class="chat" id="chat" aria-live="polite"></div>
+        <div class="libre" id="libreFila" hidden><input id="libre" placeholder="Escribe tu pregunta…" autocomplete="off"><button class="btn btn-primario" id="enviar">Preguntar</button></div>
+        <p class="ia" id="iaEstado"></p>
+        <div id="sug"></div>
+      </div>
+      <div id="cDat" hidden></div>
+    </div>
+    <div class="p-acc"><button class="btn btn-primario" id="aEval">Comenzar evaluación ›</button></div>
+  </section>
+
+  <!-- 2. Evaluación -->
+  <section class="barra flota plegable" id="barra" aria-label="Ítem actual" hidden>
+    <button class="minbtn" type="button" data-min aria-expanded="true" aria-label="Minimizar panel" title="Minimizar panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button>
+    <button class="av-tog" id="avTog" type="button" aria-expanded="false" aria-controls="avance"></button>
+    <div class="avance" id="avance"></div>
+    <div class="it-cab"><span class="cod" id="itCod"></span><h2 id="itNom"></h2><span class="subn" id="itSub"></span></div>
+    <p class="it-txt"><b>Consigna:</b> <span id="itCons"></span></p>
+    <p class="it-txt crit"><b>Criterio:</b> <span id="itCrit"></span></p>
+    <div class="elementos" id="itEl" hidden></div>
+    <div class="acciones">
+      <button class="btn btn-primario aplicar" id="btnAplicar"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg>Aplicar</button>
+      <div class="opc" role="radiogroup" aria-label="Resultado del ítem">
+        <label><input type="radio" id="o-e" name="resItem" value="e"><span>Éxito (1)</span></label>
+        <label><input type="radio" id="o-f" name="resItem" value="f"><span>Fracaso (0)</span></label>
+      </div>
+      <div class="nav"><button class="btn" id="prev" aria-label="Ítem anterior">‹</button><button class="btn" id="next">Siguiente ›</button></div>
+    </div>
+    <div id="itRes"></div>
+    <p class="accion" id="accion" aria-live="polite"></p>
+  </section>
+
+  <!-- 3. Formulario -->
+  <section class="panel p-centro flota" id="pFormulario" aria-label="Formulario TEPSI" hidden>
+    <div class="panel-cab"><h2>Formulario TEPSI</h2></div>
+    <div class="panel-cuerpo" id="fCuerpo"></div>
+  </section>
+
+  <!-- 4. Conducta -->
+  <section class="panel p-centro flota" id="pConducta" aria-label="Conducta a seguir" hidden>
+    <div class="panel-cab"><h2>Conducta a seguir</h2></div>
+    <div class="panel-cuerpo" id="kCuerpo"></div>
+  </section>
+
+  <div class="velo" id="velo"></div>
+  <aside class="pauta" id="pauta" aria-label="Pauta de evaluación" aria-hidden="true">
+    <div class="pauta-cab"><h2>Pauta</h2><button class="ibtn" id="cerrarPauta" aria-label="Cerrar pauta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+    <div class="pauta-cuerpo">
+      <section aria-label="Caso">
+        <div class="lbl">Caso</div>
+        <div class="casos" id="casos" role="group" aria-label="Elegir caso"></div>
+        <p class="contexto" id="contexto"></p>
+        <div class="ficha" id="ficha"></div>
+      </section>
+      <section aria-label="Protocolo">
+        <p class="nota" style="margin-bottom:8px">Los 52 ítems del formulario TEPSI. Toca un ítem para ir a él.</p>
+        <div id="protocolo"></div>
+      </section>
+      <div class="pie"><button class="btn" id="reiniciar">Reiniciar caso</button></div>
+      <p class="nota">Prototipo docente con casos ficticios. Consignas y criterios resumidos para práctica: verifícalos con el manual del TEPSI (Haeussler y Marchant, Ediciones UC). Niños 3D generados con MPFB y Anny (licencias abiertas).</p>
+    </div>
+  </aside>
+</div>
+__RN__
+__EEDP__

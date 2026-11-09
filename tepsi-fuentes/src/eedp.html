@@ -1,0 +1,40 @@
+<section class="app-eedp" id="appEedp" hidden aria-labelledby="eedpTit">
+  <div class="eedp-wrap">
+    <div class="eedp-intro">
+      <h2 id="eedpTit">Escala de evaluación del desarrollo psicomotor 0 a 2 años</h2>
+      <p>Aplicas la pauta de 75 ítems, calculas la edad mental, la razón con la edad cronológica, el puntaje estándar, el coeficiente de desarrollo y el perfil por área. Fuente: Normas técnicas de estimulación y evaluación del desarrollo psicomotor 0 a 6 años, MINSAL 2004, Anexo 16, págs. 399–405.</p>
+    </div>
+
+    <div class="eedp-grid">
+      <div class="eedp-col">
+        <section class="eedp-card" aria-labelledby="eedpFichaT">
+          <h3 id="eedpFichaT">Caso ficticio</h3>
+          <div class="eedp-ficha">
+            <label>Nombre<input type="text" id="eedpNombre" value="Lactante ficticio" autocomplete="off"></label>
+            <label>Fecha de nacimiento<input type="date" id="eedpNac" value="2026-03-01"></label>
+            <label>Fecha de evaluación<input type="date" id="eedpEval" value="2026-11-10"></label>
+          </div>
+          <p class="eedp-ec" id="eedpEC" aria-live="polite"></p>
+          <div class="eedp-acc">
+            <button class="btn" type="button" id="eedpEjemplo">Cargar respuestas de ejemplo</button>
+            <button class="btn" type="button" id="eedpLimpiar">Limpiar pauta</button>
+          </div>
+        </section>
+
+        <section class="eedp-card" aria-labelledby="eedpPautaT">
+          <h3 id="eedpPautaT">Pauta por meses</h3>
+          <p class="eedp-ayuda">Marca cada ítem como <b>logra</b> o <b>no logra</b>. Se parte en el mes inferior a la edad cronológica; si el niño no logra ningún ítem de ese mes, se evalúa el mes anterior. El examen termina en el primer mes en que no logra ninguno.</p>
+          <div id="eedpBloques"></div>
+        </section>
+      </div>
+
+      <aside class="eedp-col eedp-res" aria-labelledby="eedpResT">
+        <section class="eedp-card eedp-card-res" aria-live="polite">
+          <h3 id="eedpResT">Resultados</h3>
+          <div id="eedpResultado"></div>
+        </section>
+        <p class="nota">Prototipo docente con caso ficticio. Cálculo según el Anexo 16. Verifica siempre con el manual original antes de usarlo en evaluación real.</p>
+      </aside>
+    </div>
+  </div>
+</section>

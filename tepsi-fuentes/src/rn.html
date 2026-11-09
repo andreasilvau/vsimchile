@@ -1,0 +1,34 @@
+<div class="app" id="appRN" hidden>
+  <div class="visor" id="rnVisor">
+    <div class="cargando" id="rnCargando">Cargando recién nacido 3D…</div>
+  </div>
+  <div class="hud hud-tl">
+    <div class="chip estado" id="rnEstado"><i></i><span id="rnEstadoTxt">Alerta tranquilo</span></div>
+  </div>
+  <div class="hud hud-tr rn-vistas" role="group" aria-label="Vista de cámara">
+    <button class="ibtn flota" data-rnv="arriba" aria-pressed="true">Arriba</button>
+    <button class="ibtn flota" data-rnv="pies" aria-pressed="false">Pies</button>
+    <button class="ibtn flota" data-rnv="lado" aria-pressed="false">Lado</button>
+    <button class="ibtn flota" id="rnGorro" aria-pressed="true">Gorro</button>
+  </div>
+  <div class="chip pista rn-pista" id="rnPista">Arrastra para girar · pellizca para acercar</div>
+  <p class="rn-accion chip" id="rnAccion" aria-live="polite"></p>
+
+  <section class="panel p-lado flota plegable rn-panel" id="rnPanel" aria-label="Examen de reflejos">
+    <div class="panel-cab"><h2>Examen de reflejos primitivos</h2><button class="minbtn" type="button" data-rnmin aria-expanded="true" aria-label="Minimizar panel" title="Minimizar panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button></div>
+    <div class="panel-cuerpo">
+      <div class="rn-casos" id="rnCasos" role="group" aria-label="Elegir caso"></div>
+      <p class="rn-ctx" id="rnCtx"></p>
+      <div class="rn-ficha" id="rnFicha"></div>
+      <p class="rn-tec">Aplica cada maniobra, observa la respuesta en ambos lados y registra tu hallazgo. Al final, revisa tu examen.</p>
+      <div class="rn-refl" id="rnRefl"></div>
+      <div class="rn-pie">
+        <button class="btn btn-primario" id="rnRevisar">Revisar examen</button>
+        <button class="btn" id="rnReiniciar">Reiniciar caso</button>
+        <span class="rn-puntaje" id="rnPuntaje" aria-live="polite"></span>
+      </div>
+      <div id="rnCierre"></div>
+      <p class="nota">Prototipo docente. Recién nacido modelado en MPFB (MakeHuman). Casos ficticios y simplificados.</p>
+    </div>
+  </section>
+</div>
