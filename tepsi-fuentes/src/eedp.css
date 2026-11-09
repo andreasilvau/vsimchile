@@ -1,40 +1,21 @@
-/* ---------- EEDP 0 a 2 años (layout fullscreen, reutiliza .app/.visor/.hud/.panel/.pauta de TEPSI) ---------- */
-
-/* El #appEedp es un .app genérico: heredamos las reglas base (.app, .visor, .hud, .flota, .panel, .pauta).
-   Solo definimos aquí lo que es específico del módulo EEDP. */
-
-/* HUD ajustes: ubicar debajo de la topbar */
-#appEedp .hud-tl{top:12px}
-#appEedp .hud-tr{top:12px}
-
-/* Panel de caso (izquierdo): intro y ficha */
-.eedp-intro-txt{font-size:14px;color:var(--muted);margin:0;line-height:1.5}
-.eedp-intro-txt small{display:block;margin-top:4px;font-size:12px}
-.eedp-ficha{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+/* ---------- EEDP 0 a 2 años ---------- */
+.app-eedp{flex:1;min-height:0;overflow-y:auto;background:var(--bg)}
+.app-eedp[hidden]{display:none!important}
+.eedp-wrap{max-width:1180px;margin:0 auto;padding:20px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:16px}
+.eedp-intro h2{font-family:var(--display);font-weight:700;font-size:22px;margin:0 0 6px;color:var(--ink)}
+.eedp-intro p{margin:0;font-size:14px;color:var(--muted);max-width:76ch}
+.eedp-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+.eedp-col{display:flex;flex-direction:column;gap:16px;min-width:0}
+.eedp-res{position:sticky;top:12px}
+@media (max-width:860px){.eedp-grid{grid-template-columns:1fr}.eedp-res{position:static}}
+.eedp-card{background:var(--panel);border:1px solid var(--line);border-top:4px solid var(--cyan);border-radius:14px;padding:16px}
+.eedp-card h3{font-family:var(--display);font-weight:700;font-size:16px;margin:0 0 10px;color:var(--ink)}
+.eedp-ayuda{font-size:13px;color:var(--muted);margin:0 0 12px}
+.eedp-ficha{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
 .eedp-ficha label{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:600;color:var(--muted)}
 .eedp-ficha input{font:inherit;font-size:14px;color:var(--ink);background:var(--panel);border:1px solid var(--field);border-radius:8px;padding:8px 10px;min-height:40px}
-.eedp-ec{margin:10px 0 0;font-size:14px;font-weight:600;color:var(--brand)}
-.eedp-acc{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-
-/* Panel de resultados (flotante derecho inferior) */
-#appEedp .p-res{right:max(12px,env(safe-area-inset-right,0px));bottom:max(12px,env(safe-area-inset-bottom,0px));width:min(400px,calc(100% - 24px));max-height:50vh;top:auto;left:auto}
-.eedp-kpi{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px}
-.eedp-kpi div{background:var(--brand-soft);border-radius:8px;padding:8px 10px}
-.eedp-kpi span{display:block;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
-.eedp-kpi b{font:600 18px var(--mono);color:var(--ink);font-variant-numeric:tabular-nums}
-.eedp-cd{display:inline-block;padding:6px 14px;border-radius:999px;font-weight:700;font-size:14px;margin-bottom:12px}
-.eedp-cd.normal{background:var(--ok-soft);color:var(--ok)}
-.eedp-cd.riesgo{background:var(--wait-soft);color:var(--wait)}
-.eedp-cd.retraso{background:var(--hi-soft);color:var(--hi)}
-.eedp-tabla{width:100%;border-collapse:collapse;font-size:13px}
-.eedp-tabla th,.eedp-tabla td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line)}
-.eedp-tabla th{font-weight:600;color:var(--muted);font-size:12px}
-.eedp-tabla td.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
-.eedp-msg{font-size:13px;color:var(--wait);background:var(--wait-soft);border-radius:8px;padding:8px 10px;margin:8px 0 0}
-.eedp-supuesto{font-size:12px;color:var(--muted);margin:10px 0 0}
-
-/* Pauta: bloques de ítems por mes (dentro del slide-in .pauta) */
-.eedp-ayuda{font-size:13px;color:var(--muted);margin:0 0 12px}
+.eedp-ec{margin:12px 0 0;font-size:14px;font-weight:600;color:var(--brand)}
+.eedp-acc{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .eedp-bloque{border:1px solid var(--line);border-radius:10px;margin-bottom:10px;overflow:hidden}
 .eedp-bloque>summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;background:var(--brand-soft);font-weight:600;font-size:14px;color:var(--ink);min-height:44px}
 .eedp-bloque>summary::-webkit-details-marker{display:none}
@@ -50,21 +31,24 @@
 .eedp-btns .btn{min-height:40px;padding:6px 10px;font-size:13px}
 .eedp-btns .btn[aria-pressed="true"][data-v="no"]{background:var(--hi);border-color:var(--hi);color:#fff}
 .eedp-btns .btn[aria-pressed="true"][data-v="si"]{background:var(--ok);border-color:var(--ok);color:#fff}
+.eedp-kpi{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.eedp-kpi div{background:var(--brand-soft);border-radius:8px;padding:8px 10px}
+.eedp-kpi span{display:block;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.eedp-kpi b{font:600 18px var(--mono);color:var(--ink);font-variant-numeric:tabular-nums}
+.eedp-cd{display:inline-block;padding:6px 14px;border-radius:999px;font-weight:700;font-size:14px;margin-bottom:12px}
+.eedp-cd.normal{background:var(--ok-soft);color:var(--ok)}
+.eedp-cd.riesgo{background:var(--wait-soft);color:var(--wait)}
+.eedp-cd.retraso{background:var(--hi-soft);color:var(--hi)}
+.eedp-tabla{width:100%;border-collapse:collapse;font-size:13px}
+.eedp-tabla th,.eedp-tabla td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line)}
+.eedp-tabla th{font-weight:600;color:var(--muted);font-size:12px}
+.eedp-tabla td.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.eedp-msg{font-size:13px;color:var(--wait);background:var(--wait-soft);border-radius:8px;padding:8px 10px;margin:8px 0 0}
+.eedp-supuesto{font-size:12px;color:var(--muted);margin:10px 0 0}
 
-/* Chip de demo (posición inferior central, sobre el visor) */
-.eedp-demo-chip{position:absolute;z-index:3;bottom:max(16px,env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);max-width:min(600px,calc(100% - 24px));text-align:center;font-size:13px;padding:8px 14px;border-radius:12px}
+.eedp-visor{position:relative;background:var(--escena);border-radius:10px;overflow:hidden;height:400px}
+.eedp-visor canvas{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+.eedp-visor-msg{position:absolute;inset:auto 0 12px 0;margin:0;text-align:center;font-size:13px;color:var(--muted)}
+.eedp-visor-msg.oculto{display:none}
 
-/* Panel colapsable (.min) */
-#appEedp .p-lado.min>:not(.panel-cab){display:none}
-#appEedp .p-lado.min{height:auto}
-#appEedp .p-res.min>:not(.panel-cab){display:none}
-#appEedp .p-res.min{height:auto;max-height:none}
-
-/* Responsive: móvil */
-@media (max-width:760px){
-  #appEedp .p-lado{top:auto;bottom:0;left:0;right:0;width:100%;max-height:55vh;border-radius:14px 14px 0 0;overflow-y:auto}
-  #appEedp .p-lado.min{max-height:none;overflow:visible}
-  #appEedp .p-res{left:0;right:0;bottom:0;width:100%;max-height:45vh;border-radius:14px 14px 0 0}
-  #appEedp .hud-tl{top:8px}
-  #appEedp .hud-tr{top:8px}
-}
+.eedp-demo{font-size:.92rem;margin:.6rem 0 0;color:var(--tx2,#3d4f63);min-height:2.6em}

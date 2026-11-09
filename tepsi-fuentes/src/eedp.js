@@ -4,50 +4,7 @@ const $=s=>document.querySelector(s);
 const MADRE=[10,15,20,30,53,55,60,69,70,73];
 const R={};            /* respuestas: nº de ítem → true (logra) | false (no logra) */
 const cerrados=new Set();   /* bloques que el examinador cerró a mano */
-
-/* --- Panel lateral (ficha caso) --- */
-const panelEl=$('#eedpPanel');
-const casoBtn=$('#eedpCasoBtn');
-if(casoBtn&&panelEl){
-  casoBtn.addEventListener('click',()=>{
-    const vis=!panelEl.hidden&&!panelEl.classList.contains('min');
-    if(vis){panelEl.classList.add('min');}
-    else{panelEl.hidden=false;panelEl.classList.remove('min');}
-  });
-  const minBtn=panelEl.querySelector('[data-min]');
-  if(minBtn)minBtn.addEventListener('click',()=>{
-    const exp=panelEl.classList.toggle('min');
-    minBtn.setAttribute('aria-expanded',!exp);
-  });
-}
-
-/* --- Slide-in pauta --- */
-const pautaEl=$('#eedpPauta');
-const pautaBtn=$('#eedpPautaBtn');
-const pautaCerrar=$('#eedpPautaCerrar');
-function togglePauta(abrir){
-  const a=abrir!==undefined?abrir:!pautaEl.classList.contains('abierta');
-  pautaEl.classList.toggle('abierta',a);
-  if(pautaBtn)pautaBtn.setAttribute('aria-expanded',a);
-}
-if(pautaBtn)pautaBtn.addEventListener('click',()=>togglePauta());
-if(pautaCerrar)pautaCerrar.addEventListener('click',()=>togglePauta(false));
-
-/* --- Panel de resultados --- */
-const resPanel=$('#eedpResPanel');
-const resBtn=$('#eedpResBtn');
-if(resBtn&&resPanel){
-  resBtn.addEventListener('click',()=>{
-    const vis=!resPanel.hidden;
-    resPanel.hidden=vis;
-    resBtn.setAttribute('aria-expanded',!vis);
-  });
-  const minBtn=resPanel.querySelector('[data-min]');
-  if(minBtn)minBtn.addEventListener('click',()=>{
-    const exp=resPanel.classList.toggle('min');
-    minBtn.setAttribute('aria-expanded',!exp);
-  });
-}
+const fmtFecha=iso=>{const [y,m,d]=iso.split('-');return `${d}/${m}/${y}`;};
 
 function ec(){
   const n=$('#eedpNac').value,e=$('#eedpEval').value;
@@ -93,19 +50,8 @@ function pintarBloques(c){
   $('#eedpBloques').innerHTML=h;
 }
 
-/* Actualizar estado del chip */
-function actualizarEstado(){
-  const total=Object.keys(R).length;
-  const txt=$('#eedpEstadoTxt');
-  if(txt){
-    if(total===0)txt.textContent='Sin evaluar';
-    else txt.textContent=`${total} ítems marcados`;
-  }
-}
-
 function pintarResultado(c){
   const out=$('#eedpResultado');
-  if(!out)return;
   if(!c){out.innerHTML='<p class="eedp-msg">Ingresa fechas válidas para calcular.</p>';return;}
   const r=eedpCalcular(c.total,R);
   if(!r.ok){out.innerHTML=`<p class="eedp-msg">${r.motivo}</p>`;return;}
@@ -132,16 +78,13 @@ function pintarResultado(c){
       <thead><tr><th scope="col">Área</th><th scope="col">Último ítem logrado</th><th scope="col">Perfil</th></tr></thead>
       <tbody>${filas}</tbody>
     </table>
-    <p class="eedp-supuesto">Déficit: último ítem logrado en un mes menor a los ${r.mesesCumplidos} meses cumplidos.</p>`;
-  /* Mostrar panel de resultados automáticamente al tener datos */
-  if(resPanel&&resPanel.hidden&&r.ok){resPanel.hidden=false;if(resBtn)resBtn.setAttribute('aria-expanded','true');}
+    <p class="eedp-supuesto">Déficit: último ítem logrado en un mes menor a los ${r.mesesCumplidos} meses cumplidos. Esta regla es nuestra lectura de la norma; confírmala con el manual antes de usarla en evaluación real.</p>`;
 }
 
 function refrescar(){
   const c=pintarEC();
   pintarBloques(c);
   pintarResultado(c);
-  actualizarEstado();
 }
 
 function cargarEjemplo(){
@@ -150,8 +93,6 @@ function cargarEjemplo(){
   for(let n=45;n<=50;n++)R[n]=false;
   cerrados.clear();
   refrescar();
-  /* Abrir pauta para que se vean las respuestas */
-  togglePauta(true);
 }
 
 $('#eedpBloques').addEventListener('click',e=>{
@@ -171,9 +112,9 @@ $('#eedpBloques').addEventListener('click',e=>{const b=e.target.closest('[data-d
 $('#eedpLimpiar').onclick=()=>{for(const k of Object.keys(R))delete R[k];cerrados.clear();refrescar();};
 
 
-/* ---------- Conductas ilustradas ---------- */
+/* ---------- Conductas ilustradas (misma idea que la pestaña de RN: el bebé ejecuta la indicación) ---------- */
 const D2R=Math.PI/180;
-const LADO_HUESO={D:'R',I:'L'};
+const LADO_HUESO={D:'R',I:'L'}; /* el cargador de GLTF quita los puntos de los nombres: upperleg01.R -> upperleg01R */
 function lado(L,lista){const s=LADO_HUESO[L],sg=L==='D'?-1:1;return lista.map(([b,ax,d])=>[b+s,ax,(ax==='y'||ax==='z')?d*sg:d]);}
 const dedos=d=>['2','3','4','5'].flatMap(f=>['1','2','3'].map(j=>[`finger${f}-${j}`,'x',d]));
 const pulgar=d=>[['finger1-2','x',d],['finger1-3','x',d]];
@@ -202,6 +143,7 @@ Object.assign(POSES_DEMO,{
   brazoFlex_base_D:lado('D',POSE_DEF.brazoFlex),brazoFlex_base_I:lado('I',POSE_DEF.brazoFlex),
   piernaFlex_base_D:lado('D',POSE_DEF.piernaFlex),piernaFlex_base_I:lado('I',POSE_DEF.piernaFlex)
 });
+/* g = giro del cuerpo en grados (-90 supino, 90 prono, 0 de pie/sentado); p = pesos de cada pose */
 const BASE={g:-90,p:{brazoFlex_base_D:1,brazoFlex_base_I:1,piernaFlex_base_D:1,piernaFlex_base_I:1}};
 const CONDUCTA={
   reposo:{...BASE,nombre:'Reposo'},
@@ -223,11 +165,12 @@ const CONDUCTA={
   pie_apoyo:{g:0,p:{brazoPresenta_D:1},nombre:'De pie, apoyado en un mueble'},
   muestra_zapatos:{g:-90,p:{piernaExt_D:1},nombre:'Levanta el pie para mostrar el zapato'}
 };
+/* Ítem de la pauta -> conducta ilustrada (aproximada: el examinador decide si el niño lo logra) */
 const CONDUCTA_ITEM={1:'mirada_D',2:'mirada_I',3:'palmar_D',4:'mirada_D',5:'prono',6:'sonrisa',7:'vocaliza',8:'mirada_I',9:'sentado',10:'vocaliza',11:'sonrisa',12:'mirada_I',13:'mirada_D',14:'sentado',15:'vocaliza',16:'mirada_D',17:'mirada_I',18:'prono',19:'sentado',20:'sonrisa',21:'mirada_D',22:'alcanza_D',23:'alcanza_D',24:'sentado',25:'sentado',26:'sentado',27:'mirada_I',28:'coge_D',29:'coge_D',30:'vocaliza',31:'sentado',32:'pinza_D',33:'mirada_D',34:'saludo',35:'coge_dos',36:'sentado',37:'de_pie',38:'camina',39:'pinza_D',40:'vocaliza',41:'pie_apoyo',42:'camina',43:'pinza_D',44:'alcanza_D',45:'mirada_D',46:'pinza_D',47:'saludo',48:'coge_D',49:'coge_dos',50:'mirada_I',51:'camina',52:'coge_dos',53:'de_pie',54:'alcanza_D',55:'vocaliza',56:'camina_solo',57:'pinza_D',58:'alcanza_D',59:'coge_D',60:'vocaliza',61:'muestra_zapatos',62:'camina',63:'camina_solo',64:'pinza_D',65:'alcanza_D',66:'mirada_D',67:'vocaliza',68:'coge_dos',69:'vocaliza',70:'vocaliza',71:'pie_apoyo',72:'mirada_D',73:'alcanza_D',74:'mirada_I',75:'coge_dos'};
 
-/* Visor 3D del lactante */
+/* Visor 3D del lactante (models/lactante-8m.glb, junto al index.html). */
 function iniciarVisor(){
-  const cv=document.getElementById('eedpCanvas'),msg=document.getElementById('eedpVisorMsg'),demoEl=document.getElementById('eedpDemo');
+  const cv=document.getElementById('eedpCanvas'),msg=document.getElementById('eedpVisorMsg'),demoTxt=document.getElementById('eedpDemo');
   const avisar=t=>{msg.textContent=t;msg.classList.remove('oculto');};
   if(!cv||!window.THREE||!THREE.GLTFLoader){avisar('No se pudo cargar el visor 3D (sin conexión a la librería).');return;}
   let renderer;
@@ -270,11 +213,8 @@ function iniciarVisor(){
     clearTimeout(temporizador);
     fijar(c);
     const it=EEDP_ITEMS.find(i=>i[0]===n);
-    if(demoEl){
-      demoEl.hidden=false;
-      demoEl.textContent=`Ítem ${n}: ${it?it[3]:''}. Conducta: ${c.nombre.toLowerCase()}.`;
-    }
-    if(clave!=='reposo')temporizador=setTimeout(()=>{fijar(CONDUCTA.reposo);if(demoEl)demoEl.textContent+=' (vuelve a reposo)';},3000);
+    if(demoTxt)demoTxt.textContent=`Ítem ${n}: ${it?it[3]:''}. Conducta ilustrada: ${c.nombre.toLowerCase()}. Es una ilustración aproximada; el examinador decide si el niño lo logra.`;
+    if(clave!=='reposo')temporizador=setTimeout(()=>{fijar(CONDUCTA.reposo);if(demoTxt)demoTxt.textContent+=' (vuelve a reposo)';},3000);
   }
   window.EEDP_DEMO=demo;
 
@@ -286,12 +226,14 @@ function iniciarVisor(){
   colchoneta.position.y=-0.005;
   colchoneta.receiveShadow=true;
   acostar.add(colchoneta);
+  /* Borde sutil de la colchoneta */
   const bordeGeo=new THREE.PlaneGeometry(1.28,0.88);
   const bordeMat=new THREE.MeshStandardMaterial({color:0xa8c4d8,roughness:0.9,metalness:0.0});
   const borde=new THREE.Mesh(bordeGeo,bordeMat);
   borde.rotation.x=-Math.PI/2;
   borde.position.y=-0.008;
   acostar.add(borde);
+  /* Piso de fondo */
   const pisoGeo=new THREE.PlaneGeometry(4,4);
   const pisoMat=new THREE.MeshStandardMaterial({color:0xe0ecf4,roughness:0.95,metalness:0.0});
   const piso=new THREE.Mesh(pisoGeo,pisoMat);
@@ -300,30 +242,22 @@ function iniciarVisor(){
   piso.receiveShadow=true;
   escena.add(piso);
 
-  /* Usa el modelo RN embebido (RN_GLB) como placeholder */
-  if(!window.RN_GLB){avisar('Modelo 3D no disponible.');return;}
-  try{
-    const bin=Uint8Array.from(atob(RN_GLB),ch=>ch.charCodeAt(0)).buffer;
-    loader.parse(bin,'',g=>{
-      const m=g.scene;
-      m.traverse(o=>{if(o.isBone){H[o.name]=o;}if(o.isSkinnedMesh)o.frustumCulled=false;});
-      /* Escalar a ~52 cm como lactante */
-      const ESCALA=0.52/0.686;
-      m.scale.setScalar(ESCALA);
-      const caja=new THREE.Box3().setFromObject(m);
-      const centro=caja.getCenter(new THREE.Vector3()),alto=caja.getSize(new THREE.Vector3()).y;
-      m.position.sub(centro);
-      m.position.y+=alto*0.5;
-      acostar.add(m);
-      for(const n in H)REST[n]=H[n].quaternion.clone();
-      const d=alto*1.5;distancia=d;
-      cam.position.set(0,d*0.8,d*0.6);cam.lookAt(0,alto*0.15,0);
-      if(ctl){ctl.target.set(0,alto*0.15,0);ctl.update();}
-      fijar(BASE);
-      msg.classList.add('oculto');
-      ajustar();
-    },()=>avisar('No se pudo cargar el modelo 3D.'));
-  }catch(e){avisar('Error al cargar el modelo 3D.');}
+  loader.load('models/lactante-8m.glb',g=>{
+    const m=g.scene;
+    const caja=new THREE.Box3().setFromObject(m);
+    const centro=caja.getCenter(new THREE.Vector3()),alto=caja.getSize(new THREE.Vector3()).y;
+    m.position.sub(centro);
+    m.position.y+=alto*0.5; /* apoyado sobre la colchoneta */
+    acostar.add(m);
+    m.traverse(o=>{if(o.isBone){H[o.name]=o;REST[o.name]=o.quaternion.clone();}if(o.isSkinnedMesh)o.frustumCulled=false;});
+    for(const k in POSES_DEMO)for(const [b] of POSES_DEMO[k])if(!H[b]){/* hueso ausente: se ignora */}
+    const d=alto*1.5;distancia=d;
+    cam.position.set(0,d*0.8,d*0.6);cam.lookAt(0,alto*0.15,0);
+    if(ctl){ctl.target.set(0,alto*0.15,0);ctl.update();}
+    fijar(BASE);
+    msg.classList.add('oculto');
+    ajustar();
+  },undefined,()=>avisar('No se pudo cargar el modelo 3D.'));
   window.addEventListener('resize',ajustar);
   const bucle=now=>{
     requestAnimationFrame(bucle);
