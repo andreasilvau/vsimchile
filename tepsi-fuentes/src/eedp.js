@@ -39,6 +39,7 @@ function pintarBloques(c){
         <span class="n">${it[0]}</span>
         <span class="t">${it[3]}${MADRE.includes(it[0])?' <span class="m" title="Pregunta a la madre o acompañante">** madre</span>':''}<small>${area} · ${it[2]} · ${it[4]} c/u${it[5]?' · pregunta a la madre':''}</small></span>
         <span class="eedp-btns" role="group" aria-label="Ítem ${it[0]}">
+          <button class="btn" type="button" data-demo="${it[0]}" aria-label="Ver conducta ilustrada del ítem ${it[0]}">▶ Ver</button>
           <button class="btn" type="button" data-n="${it[0]}" data-v="si" aria-pressed="${v===true}">Logra</button>
           <button class="btn" type="button" data-n="${it[0]}" data-v="no" aria-pressed="${v===false}">No logra</button>
         </span>
@@ -107,42 +108,69 @@ $('#eedpBloques').addEventListener('toggle',e=>{
 },true);
 ['#eedpNac','#eedpEval'].forEach(s=>$(s).addEventListener('change',refrescar));
 $('#eedpEjemplo').onclick=cargarEjemplo;
+$('#eedpBloques').addEventListener('click',e=>{const b=e.target.closest('[data-demo]');if(b&&window.EEDP_DEMO)window.EEDP_DEMO(+b.dataset.demo);});
 $('#eedpLimpiar').onclick=()=>{for(const k of Object.keys(R))delete R[k];cerrados.clear();refrescar();};
 
 
-/* Ropa del lactante: se pinta dentro de la misma malla del cuerpo, como grupos de materiales.
-   Así la ropa usa exactamente la piel y el esqueleto del cuerpo, sin mallas extra. */
-function vestirLactante(raiz){
-  let cuerpo=null;
-  raiz.traverse(o=>{if(o.isSkinnedMesh&&o.skeleton&&o.geometry.attributes.skinIndex&&(!cuerpo||o.geometry.attributes.position.count>cuerpo.geometry.attributes.position.count))cuerpo=o;});
-  if(!cuerpo)return;
-  const geo=cuerpo.geometry,pos=geo.attributes.position,SI=geo.attributes.skinIndex,SW=geo.attributes.skinWeight;
-  const nombres=cuerpo.skeleton.bones.map(b=>b.name);
-  const comp=(A,i,k)=>k===0?A.getX(i):k===1?A.getY(i):k===2?A.getZ(i):A.getW(i);
-  const clase=new Uint8Array(pos.count); /* 0 piel, 1 pañal, 2 pelele */
-  for(let i=0;i<pos.count;i++){let mw=-1,mb=0;for(let k=0;k<4;k++){const w=comp(SW,i,k);if(w>mw){mw=w;mb=comp(SI,i,k);}}
-    const n=nombres[mb]||'';if(/^(pelvis|upperleg)/.test(n))clase[i]=1;else if(/^(spine0[1-5]|clavicle)/.test(n))clase[i]=2;}
-  const src=geo.index?Array.from(geo.index.array):Array.from({length:pos.count},(_,i)=>i);
-  const grupos=[[],[],[]];
-  for(let t=0;t<src.length;t+=3){
-    const a=src[t],b=src[t+1],c=src[t+2];
-    const k=(clase[a]===clase[b]&&clase[b]===clase[c])?clase[a]:0;
-    grupos[k].push(a,b,c);
-  }
-  geo.setIndex([...grupos[0],...grupos[1],...grupos[2]]);
-  geo.clearGroups();
-  let ini=0;
-  for(let k=0;k<3;k++){const n=grupos[k].length;if(n){geo.addGroup(ini,n,k);}ini+=n;}
-  const base=cuerpo.material;
-  /* skinning:true es obligatorio: sin él la prenda se dibuja en pose de reposo y no sigue al bebé. */
-  const pañal=new THREE.MeshStandardMaterial({color:0xf3f5f7,roughness:.85,side:THREE.DoubleSide,skinning:true});
-  const pelele=new THREE.MeshStandardMaterial({color:0x8fd3ef,roughness:.85,side:THREE.DoubleSide,skinning:true});
-  cuerpo.material=[base,pañal,pelele];
-}
+/* ---------- Conductas ilustradas (misma idea que la pestaña de RN: el bebé ejecuta la indicación) ---------- */
+const D2R=Math.PI/180;
+const LADO_HUESO={D:'R',I:'L'}; /* el cargador de GLTF quita los puntos de los nombres: upperleg01.R -> upperleg01R */
+function lado(L,lista){const s=LADO_HUESO[L],sg=L==='D'?-1:1;return lista.map(([b,ax,d])=>[b+s,ax,(ax==='y'||ax==='z')?d*sg:d]);}
+const dedos=d=>['2','3','4','5'].flatMap(f=>['1','2','3'].map(j=>[`finger${f}-${j}`,'x',d]));
+const pulgar=d=>[['finger1-2','x',d],['finger1-3','x',d]];
+const POSE_DEF={
+  brazoFlex:[['upperarm01','z',30],['upperarm01','y',-60],['lowerarm01','x',100],['wrist','x',15],...dedos(75),...pulgar(25)],
+  piernaFlex:[['upperleg01','x',-80],['upperleg01','z',-35],['lowerleg01','x',105],['foot','x',-15]],
+  brazoPresenta:[['upperarm01','y',35],['upperarm01','z',-8],['lowerarm01','x',-45]],
+  manoAbierta:[...dedos(-70),...pulgar(-20),['wrist','x',-15]],
+  palmar:[...dedos(78),...pulgar(25)],
+  pinza:[['finger1-2','x',25],['finger1-3','x',20],['finger2-1','x',45],['finger2-2','x',60],['finger2-3','x',30]],
+  brazoExt:[['upperarm01','y',58],['upperarm01','z',10],['lowerarm01','x',-90],['wrist','x',-10],...dedos(-55)],
+  piernaExt:[['upperleg01','x',62],['upperleg01','z',12],['lowerleg01','x',-85],['foot','x',12]],
+  piernasAdelante:[['upperleg01','x',-85],['lowerleg01','x',0]],
+  paso:[['upperleg01','x',-25],['lowerleg01','x',20]],
+  pasoAtras:[['upperleg01','x',18],['lowerleg01','x',30]],
+  cabezaGira:[['neck02','y',-28],['head','y',-34],['neck02','z',4]],
+  cabezaArriba:[['neck02','x',-25],['head','x',-15]]
+};
+const POSES_DEMO={};
+for(const k in POSE_DEF){POSES_DEMO[k+'_D']=lado('D',POSE_DEF[k]);POSES_DEMO[k+'_I']=lado('I',POSE_DEF[k]);}
+Object.assign(POSES_DEMO,{
+  boca:[['jaw',"x",13]],
+  cabeza_D:POSE_DEF.cabezaGira.map(([b,a,d])=>[b,a,d]),
+  cabeza_I:POSE_DEF.cabezaGira.map(([b,a,d])=>[b,a,-d]),
+  cabezaArriba:POSE_DEF.cabezaArriba,
+  brazoFlex_base_D:lado('D',POSE_DEF.brazoFlex),brazoFlex_base_I:lado('I',POSE_DEF.brazoFlex),
+  piernaFlex_base_D:lado('D',POSE_DEF.piernaFlex),piernaFlex_base_I:lado('I',POSE_DEF.piernaFlex)
+});
+/* g = giro del cuerpo en grados (-90 supino, 90 prono, 0 de pie/sentado); p = pesos de cada pose */
+const BASE={g:-90,p:{brazoFlex_base_D:1,brazoFlex_base_I:1,piernaFlex_base_D:1,piernaFlex_base_I:1}};
+const CONDUCTA={
+  reposo:{...BASE,nombre:'Reposo'},
+  mirada_D:{g:-90,p:{cabeza_D:1},nombre:'Gira la cabeza hacia el examinador (lado derecho)'},
+  mirada_I:{g:-90,p:{cabeza_I:1},nombre:'Gira la cabeza hacia el examinador (lado izquierdo)'},
+  sonrisa:{g:-90,p:{boca:1},nombre:'Sonríe'},
+  vocaliza:{g:-90,p:{},pulso:true,nombre:'Vocaliza (movimiento de boca)'},
+  prono:{g:90,p:{cabezaArriba:1},nombre:'Boca abajo, levanta la cabeza'},
+  sentado:{g:0,p:{piernasAdelante_D:1,piernasAdelante_I:1},nombre:'Sentado (sostenido por el examinador)'},
+  de_pie:{g:0,p:{},nombre:'De pie'},
+  alcanza_D:{g:-90,p:{brazoPresenta_D:1,manoAbierta_D:1},nombre:'Extiende la mano hacia el objeto'},
+  pinza_D:{g:-90,p:{brazoPresenta_D:1,pinza_D:1},nombre:'Toma el objeto pequeño con pinza'},
+  coge_D:{g:-90,p:{brazoPresenta_D:1,palmar_D:1},nombre:'Toma el objeto con la mano'},
+  coge_dos:{g:-90,p:{brazoPresenta_D:1,brazoPresenta_I:1,palmar_D:1,palmar_I:1},nombre:'Toma un objeto en cada mano'},
+  palmar_D:{g:-90,p:{palmar_D:1},nombre:'Cierra la mano sobre el dedo del examinador'},
+  saludo:{g:-90,p:{brazoExt_D:1},nombre:'Mueve la mano (saludo)'},
+  camina:{g:0,p:{paso_D:1,pasoAtras_I:0.6},nombre:'Camina sostenido de los brazos'},
+  camina_solo:{g:0,p:{paso_D:1,brazoPresenta_D:0.5,brazoPresenta_I:0.5},nombre:'Camina solo'},
+  pie_apoyo:{g:0,p:{brazoPresenta_D:1},nombre:'De pie, apoyado en un mueble'},
+  muestra_zapatos:{g:-90,p:{piernaExt_D:1},nombre:'Levanta el pie para mostrar el zapato'}
+};
+/* Ítem de la pauta -> conducta ilustrada (aproximada: el examinador decide si el niño lo logra) */
+const CONDUCTA_ITEM={1:'mirada_D',2:'mirada_I',3:'palmar_D',4:'mirada_D',5:'prono',6:'sonrisa',7:'vocaliza',8:'mirada_I',9:'sentado',10:'vocaliza',11:'sonrisa',12:'mirada_I',13:'mirada_D',14:'sentado',15:'vocaliza',16:'mirada_D',17:'mirada_I',18:'prono',19:'sentado',20:'sonrisa',21:'mirada_D',22:'alcanza_D',23:'alcanza_D',24:'sentado',25:'sentado',26:'sentado',27:'mirada_I',28:'coge_D',29:'coge_D',30:'vocaliza',31:'sentado',32:'pinza_D',33:'mirada_D',34:'saludo',35:'coge_dos',36:'sentado',37:'de_pie',38:'camina',39:'pinza_D',40:'vocaliza',41:'pie_apoyo',42:'camina',43:'pinza_D',44:'alcanza_D',45:'mirada_D',46:'pinza_D',47:'saludo',48:'coge_D',49:'coge_dos',50:'mirada_I',51:'camina',52:'coge_dos',53:'de_pie',54:'alcanza_D',55:'vocaliza',56:'camina_solo',57:'pinza_D',58:'alcanza_D',59:'coge_D',60:'vocaliza',61:'muestra_zapatos',62:'camina',63:'camina_solo',64:'pinza_D',65:'alcanza_D',66:'mirada_D',67:'vocaliza',68:'coge_dos',69:'vocaliza',70:'vocaliza',71:'pie_apoyo',72:'mirada_D',73:'alcanza_D',74:'mirada_I',75:'coge_dos'};
 
 /* Visor 3D del lactante (models/lactante-8m.glb, junto al index.html). */
 function iniciarVisor(){
-  const cv=document.getElementById('eedpCanvas'),msg=document.getElementById('eedpVisorMsg');
+  const cv=document.getElementById('eedpCanvas'),msg=document.getElementById('eedpVisorMsg'),demoTxt=document.getElementById('eedpDemo');
   const avisar=t=>{msg.textContent=t;msg.classList.remove('oculto');};
   if(!cv||!window.THREE||!THREE.GLTFLoader){avisar('No se pudo cargar el visor 3D (sin conexión a la librería).');return;}
   let renderer;
@@ -158,30 +186,65 @@ function iniciarVisor(){
   if(THREE.OrbitControls){ctl=new THREE.OrbitControls(cam,cv);ctl.enablePan=false;ctl.enableDamping=true;ctl.minDistance=0.3;ctl.maxDistance=2.5;}
   const loader=new THREE.GLTFLoader();
   if(window.MeshoptDecoder)loader.setMeshoptDecoder(window.MeshoptDecoder);
+
+  const H={},REST={};
+  const acostar=new THREE.Group();escena.add(acostar);
+  let gActual=-90,gDestino=-90;
+  const pesoActual={},pesoDestino={};
+  let conductaActiva=null,temporizador=null,distancia=1;
+
+  function posar(now){
+    for(const k in H)H[k].quaternion.copy(REST[k]);
+    gActual+=(gDestino-gActual)*0.12;acostar.rotation.x=gActual*D2R;
+    if(Math.abs(gDestino-gActual)>0.05){const r=gActual*D2R;cam.position.set(0,distancia*Math.abs(Math.sin(r)),distancia*(0.12+0.88*Math.abs(Math.cos(r))));cam.lookAt(0,0,0);}
+    for(const k in pesoDestino)pesoActual[k]=(pesoActual[k]||0)+((pesoDestino[k]||0)-(pesoActual[k]||0))*0.12;
+    if(conductaActiva&&conductaActiva.pulso)pesoDestino.boca=0.5+0.5*Math.sin(now/170);
+    for(const k in pesoActual){const w=pesoActual[k];if(Math.abs(w)<0.001)continue;
+      for(const [b,ax,d] of POSES_DEMO[k]){const h=H[b];if(!h)continue;const q=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(...(ax==='x'?[1,0,0]:ax==='y'?[0,1,0]:[0,0,1])),d*D2R*w);h.quaternion.multiply(q);}}
+  }
+  function fijar(c){
+    conductaActiva=c;gDestino=c.g;
+    for(const k in pesoDestino)pesoDestino[k]=0;
+    for(const k in c.p)pesoDestino[k]=c.p[k];
+    if(c.pulso)pesoDestino.boca=0.5;
+  }
+  function demo(n){
+    const clave=CONDUCTA_ITEM[n]||'reposo';const c=CONDUCTA[clave]||CONDUCTA.reposo;
+    clearTimeout(temporizador);
+    fijar(c);
+    const it=EEDP_ITEMS.find(i=>i[0]===n);
+    if(demoTxt)demoTxt.textContent=`Ítem ${n}: ${it?it[3]:''}. Conducta ilustrada: ${c.nombre.toLowerCase()}. Es una ilustración aproximada; el examinador decide si el niño lo logra.`;
+    if(clave!=='reposo')temporizador=setTimeout(()=>{fijar(CONDUCTA.reposo);if(demoTxt)demoTxt.textContent+=' (vuelve a reposo)';},3000);
+  }
+  window.EEDP_DEMO=demo;
+
   loader.load('models/lactante-8m.glb',g=>{
     const m=g.scene;
     const caja=new THREE.Box3().setFromObject(m);
     const centro=caja.getCenter(new THREE.Vector3()),alto=caja.getSize(new THREE.Vector3()).y;
     m.position.sub(centro);
-    escena.add(m);
-    try{vestirLactante(m);}catch(e){console.error(e);}
-    const d=alto*1.35;
-    cam.position.set(0,alto*0.12,d);cam.lookAt(0,0,0);
+    acostar.add(m);
+    m.traverse(o=>{if(o.isBone){H[o.name]=o;REST[o.name]=o.quaternion.clone();}if(o.isSkinnedMesh)o.frustumCulled=false;});
+    for(const k in POSES_DEMO)for(const [b] of POSES_DEMO[k])if(!H[b]){/* hueso ausente: se ignora */}
+    const d=alto*1.35;distancia=d;
+    cam.position.set(0,d,d*0.12);cam.lookAt(0,0,0);
     if(ctl){ctl.target.set(0,0,0);ctl.update();}
+    fijar(BASE);
     msg.classList.add('oculto');
     ajustar();
   },undefined,()=>avisar('No se pudo cargar el modelo 3D.'));
   window.addEventListener('resize',ajustar);
-  const bucle=()=>{
+  const bucle=now=>{
     requestAnimationFrame(bucle);
     if(document.body.dataset.modulo!=='eedp')return;
+    if(H.head){posar(now);}
     if(ctl)ctl.update();
     if(cv.clientWidth)ajustar_si_cambia();
     renderer.render(escena,cam);
   };
   let ultimoW=0;
   function ajustar_si_cambia(){if(cv.clientWidth!==ultimoW){ultimoW=cv.clientWidth;ajustar();}}
-  bucle();
+  requestAnimationFrame(bucle);
 }
 iniciarVisor();
 refrescar();

@@ -50,3 +50,5 @@
 .eedp-visor canvas{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
 .eedp-visor-msg{position:absolute;inset:auto 0 12px 0;margin:0;text-align:center;font-size:13px;color:var(--muted)}
 .eedp-visor-msg.oculto{display:none}
+
+.eedp-demo{font-size:.92rem;margin:.6rem 0 0;color:var(--tx2,#3d4f63);min-height:2.6em}
