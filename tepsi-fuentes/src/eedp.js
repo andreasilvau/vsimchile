@@ -300,21 +300,30 @@ function iniciarVisor(){
   piso.receiveShadow=true;
   escena.add(piso);
 
-  loader.load('models/lactante-8m.glb',g=>{
-    const m=g.scene;
-    const caja=new THREE.Box3().setFromObject(m);
-    const centro=caja.getCenter(new THREE.Vector3()),alto=caja.getSize(new THREE.Vector3()).y;
-    m.position.sub(centro);
-    m.position.y+=alto*0.5;
-    acostar.add(m);
-    m.traverse(o=>{if(o.isBone){H[o.name]=o;REST[o.name]=o.quaternion.clone();}if(o.isSkinnedMesh)o.frustumCulled=false;});
-    const d=alto*1.5;distancia=d;
-    cam.position.set(0,d*0.8,d*0.6);cam.lookAt(0,alto*0.15,0);
-    if(ctl){ctl.target.set(0,alto*0.15,0);ctl.update();}
-    fijar(BASE);
-    msg.classList.add('oculto');
-    ajustar();
-  },undefined,()=>avisar('No se pudo cargar el modelo 3D.'));
+  /* Usa el modelo RN embebido (RN_GLB) como placeholder */
+  if(!window.RN_GLB){avisar('Modelo 3D no disponible.');return;}
+  try{
+    const bin=Uint8Array.from(atob(RN_GLB),ch=>ch.charCodeAt(0)).buffer;
+    loader.parse(bin,'',g=>{
+      const m=g.scene;
+      m.traverse(o=>{if(o.isBone){H[o.name]=o;}if(o.isSkinnedMesh)o.frustumCulled=false;});
+      /* Escalar a ~52 cm como lactante */
+      const ESCALA=0.52/0.686;
+      m.scale.setScalar(ESCALA);
+      const caja=new THREE.Box3().setFromObject(m);
+      const centro=caja.getCenter(new THREE.Vector3()),alto=caja.getSize(new THREE.Vector3()).y;
+      m.position.sub(centro);
+      m.position.y+=alto*0.5;
+      acostar.add(m);
+      for(const n in H)REST[n]=H[n].quaternion.clone();
+      const d=alto*1.5;distancia=d;
+      cam.position.set(0,d*0.8,d*0.6);cam.lookAt(0,alto*0.15,0);
+      if(ctl){ctl.target.set(0,alto*0.15,0);ctl.update();}
+      fijar(BASE);
+      msg.classList.add('oculto');
+      ajustar();
+    },()=>avisar('No se pudo cargar el modelo 3D.'));
+  }catch(e){avisar('Error al cargar el modelo 3D.');}
   window.addEventListener('resize',ajustar);
   const bucle=now=>{
     requestAnimationFrame(bucle);
