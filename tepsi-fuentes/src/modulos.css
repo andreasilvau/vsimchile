@@ -32,6 +32,17 @@
 .regla-zona.compacta .nivel .marca{left:0;top:6px}
 .regla-zona.compacta .nivel-txt{margin-left:0;transform:none}
 .portada .btn{min-height:44px}
+/* Forzar layout compacto en móvil vía CSS, sin esperar al JS */
+@media (max-width:600px){
+  .regla-zona{min-height:0}
+  .regla-zona .regla{display:none}
+  .regla-zona .nivel{position:relative;top:auto!important;left:auto;right:auto;border-top:2px solid var(--cyan);padding-top:26px;margin-bottom:28px}
+  .regla-zona .nivel::before{display:none}
+  .regla-zona .nivel .marca{position:relative;left:0;top:0;font-size:13px;margin-bottom:4px}
+  .regla-zona .nivel-txt{margin-left:0;transform:none}
+  .nivel h3{font-size:22px;line-height:1.3}
+  .nivel p{font-size:14px}
+}
 
 /* ---------- módulo RN ---------- */
 #appRN .rn-panel{top:64px}
