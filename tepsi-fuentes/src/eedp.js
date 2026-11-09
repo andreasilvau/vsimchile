@@ -108,5 +108,49 @@ $('#eedpBloques').addEventListener('toggle',e=>{
 ['#eedpNac','#eedpEval'].forEach(s=>$(s).addEventListener('change',refrescar));
 $('#eedpEjemplo').onclick=cargarEjemplo;
 $('#eedpLimpiar').onclick=()=>{for(const k of Object.keys(R))delete R[k];cerrados.clear();refrescar();};
+
+/* Visor 3D del lactante (models/lactante-8m.glb, junto al index.html). */
+function iniciarVisor(){
+  const cv=document.getElementById('eedpCanvas'),msg=document.getElementById('eedpVisorMsg');
+  const avisar=t=>{msg.textContent=t;msg.classList.remove('oculto');};
+  if(!cv||!window.THREE||!THREE.GLTFLoader){avisar('No se pudo cargar el visor 3D (sin conexión a la librería).');return;}
+  let renderer;
+  try{renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});}
+  catch(e){avisar('Este navegador no permite gráficos 3D.');return;}
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  const ajustar=()=>{const w=cv.clientWidth,h=cv.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix();};
+  const escena=new THREE.Scene();
+  const cam=new THREE.PerspectiveCamera(28,1,0.01,10);
+  escena.add(new THREE.HemisphereLight(0xffffff,0x8899aa,1.5));
+  const luz=new THREE.DirectionalLight(0xffffff,1.1);luz.position.set(1,2,2);escena.add(luz);
+  let ctl=null;
+  if(THREE.OrbitControls){ctl=new THREE.OrbitControls(cam,cv);ctl.enablePan=false;ctl.enableDamping=true;ctl.minDistance=0.3;ctl.maxDistance=2.5;}
+  const loader=new THREE.GLTFLoader();
+  if(window.MeshoptDecoder)loader.setMeshoptDecoder(window.MeshoptDecoder);
+  loader.load('models/lactante-8m.glb',g=>{
+    const m=g.scene;
+    const caja=new THREE.Box3().setFromObject(m);
+    const centro=caja.getCenter(new THREE.Vector3()),alto=caja.getSize(new THREE.Vector3()).y;
+    m.position.sub(centro);
+    escena.add(m);
+    const d=alto*1.35;
+    cam.position.set(0,alto*0.12,d);cam.lookAt(0,0,0);
+    if(ctl){ctl.target.set(0,0,0);ctl.update();}
+    msg.classList.add('oculto');
+    ajustar();
+  },undefined,()=>avisar('No se pudo cargar el modelo 3D.'));
+  window.addEventListener('resize',ajustar);
+  const bucle=()=>{
+    requestAnimationFrame(bucle);
+    if(document.body.dataset.modulo!=='eedp')return;
+    if(ctl)ctl.update();
+    if(cv.clientWidth)ajustar_si_cambia();
+    renderer.render(escena,cam);
+  };
+  let ultimoW=0;
+  function ajustar_si_cambia(){if(cv.clientWidth!==ultimoW){ultimoW=cv.clientWidth;ajustar();}}
+  bucle();
+}
+iniciarVisor();
 refrescar();
 })();
