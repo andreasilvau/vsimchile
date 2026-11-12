@@ -525,6 +525,7 @@ function loop(now){
 cargarCaso('A');
 const ORIG_R=JSON.parse(JSON.stringify(CASOS));
 window.RN_DOC={
+  intento:()=>({caso,revisado,lista:REFL.map(r=>({id:r.id,nombre:r.nombre,mia:respuestas[r.id]||null,ok:respCorrecta(caso,r.id)}))}),
   casos:()=>Object.keys(CASOS).map(k=>({k,nombre:CASOS[k].nombre})),
   reflejos:()=>REFL.map(r=>({id:r.id,nombre:r.nombre})),opciones:()=>OPC,
   leer:k=>JSON.parse(JSON.stringify(CASOS[k])),original:k=>JSON.parse(JSON.stringify(ORIG_R[k])),
