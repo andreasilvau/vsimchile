@@ -495,7 +495,7 @@ body:not(.lado) #exfisPanel.min,#exfisPanel.min{height:auto}
     <h2 id="portTit">¿A quién vas a evaluar hoy?</h2>
     <p>Elige una evaluación. Cada una trae casos clínicos ficticios para practicar la maniobra, registrar lo que observas y revisar tu razonamiento.</p>
   </div>
-  <div class="regla-zona" id="reglaZona">
+  <div class="regla-zona compacta" id="reglaZona">
     <div class="regla" id="regla" aria-hidden="true"></div>
     <article class="nivel" data-cm="40" data-de="36" data-a="44" aria-labelledby="nvExfisT">
       <span class="marca">36–44 cm</span>
@@ -724,6 +724,50 @@ body:not(.lado) #exfisPanel.min,#exfisPanel.min{height:auto}
   </section>
 </div>
 
+<script>
+/* ---------- Portada y cambio de módulo ---------- */
+(()=>{
+const $=s=>document.querySelector(s);
+const TIT={inicio:['Simulación virtual','Simulación pediátrica 3D'],tepsi:['Simulación virtual · Desarrollo infantil','Evaluación Psicomotora TEPSI'],rn:['Simulación virtual · Neonatología','Reflejos del recién nacido'],eedp:['Simulación virtual · Desarrollo infantil','EEDP 0 a 2 años'],exfis:['Simulación virtual · Neonatología','Examen físico del recién nacido']};
+function iniciar3D(m){
+  const go=()=>{if(document.body.dataset.modulo!==m)return;try{if(m==='rn'&&window.RN)RN.iniciar();if(m==='exfis'&&window.EXFIS)EXFIS.iniciar();}catch(e){console.error(e);}};
+  if(m!=='rn'&&m!=='exfis')return;
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',go,{once:true});else go();
+}
+function ir(m,desdeHash){
+  if(!TIT[m])m='inicio';
+  if(document.body.dataset.modulo==='tepsi'&&m!=='tepsi'&&window.speechSynthesis)speechSynthesis.cancel();
+  document.body.dataset.modulo=m;
+  $('#portada').hidden=m!=='inicio';$('#appTepsi').hidden=m!=='tepsi';$('#appRN').hidden=m!=='rn';$('#appEedp').hidden=m!=='eedp';$('#appExfis').hidden=m!=='exfis';
+  $('#topSub').textContent=TIT[m][0];$('#topTit').textContent=TIT[m][1];$('#inicioBtn').hidden=m==='inicio';
+  iniciar3D(m);
+  if(m==='inicio')requestAnimationFrame(regla);
+  if(!desdeHash){try{history.replaceState(null,'',m==='inicio'?location.pathname+location.search:'#'+m);}catch(e){}}
+  if(!desdeHash&&m==='inicio'){const f=$('#portTit');f.tabIndex=-1;f.focus({preventScroll:true});}
+}
+document.querySelectorAll('[data-ir]').forEach(b=>b.onclick=()=>ir(b.dataset.ir));
+$('#inicioBtn').onclick=()=>ir('inicio');
+
+// tallímetro: cada evaluación queda marcada a la altura de su paciente
+const MIN=20,MAX=125;
+function regla(){
+  const z=$('#reglaZona'),R=$('#regla');if(!z||z.offsetParent===null)return;
+  const H=z.clientHeight,niv=[...z.querySelectorAll('.nivel')];
+  const y=cm=>H*(MAX-cm)/(MAX-MIN);
+  const alto=Math.max(...niv.map(n=>n.querySelector('.nivel-txt').offsetHeight));
+  const cms=niv.map(x=>+x.dataset.cm).sort((a,b)=>b-a);const separadas=cms.slice(1).every((c,i)=>y(cms[i])-y(c)>=alto+20);const cabe=z.clientWidth>=560&&separadas&&y(cms[0])>=alto/2&&y(cms[cms.length-1])+alto/2<=H;
+  z.classList.toggle('compacta',!cabe);
+  if(!cabe){niv.forEach(n=>n.style.top='');R.innerHTML='';return;}
+  let h='';
+  for(let cm=MIN;cm<=MAX;cm++){const t=cm%10===0?'l':cm%5===0?'m':'s';h+=`<i class="t${t}" style="top:${y(cm)}px"></i>`;if(t==='l')h+=`<b style="top:${y(cm)}px">${cm}</b>`;}
+  niv.forEach(n=>{const de=+n.dataset.de,a=+n.dataset.a;h+=`<span class="banda" style="top:${y(a)}px;height:${y(de)-y(a)}px"></span>`;n.style.top=y(+n.dataset.cm)+'px';});
+  R.innerHTML=h;
+}
+new ResizeObserver(()=>{if(document.body.dataset.modulo==='inicio')regla();}).observe($('#reglaZona'));
+if(document.fonts)document.fonts.ready.then(regla);
+const h0=location.hash.slice(1);ir(TIT[h0]?h0:'inicio',true);
+})();
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
@@ -2734,46 +2778,6 @@ window.RN_DOC={
     if(k===caso&&!ocupado){$('#rnCtx').textContent=C.ctx;$('#rnFicha').innerHTML=C.ficha.map(([a,b])=>`<div><span class="lbl">${escH(a)}</span><b>${escH(b)}</b></div>`).join('');if(revisado)pintarReflejos();}}
 };
 window.RN={iniciar,talla:()=>iniciado&&talla(),_dbg:()=>({cam,ctl,inf,H,THREE,guante,scene})};
-})();
-
-</script>
-<script>
-/* ---------- Portada y cambio de módulo ---------- */
-(()=>{
-const $=s=>document.querySelector(s);
-const TIT={inicio:['Simulación virtual','Simulación pediátrica 3D'],tepsi:['Simulación virtual · Desarrollo infantil','Evaluación Psicomotora TEPSI'],rn:['Simulación virtual · Neonatología','Reflejos del recién nacido'],eedp:['Simulación virtual · Desarrollo infantil','EEDP 0 a 2 años'],exfis:['Simulación virtual · Neonatología','Examen físico del recién nacido']};
-function ir(m,desdeHash){
-  if(!TIT[m])m='inicio';
-  if(document.body.dataset.modulo==='tepsi'&&m!=='tepsi'&&window.speechSynthesis)speechSynthesis.cancel();
-  document.body.dataset.modulo=m;
-  $('#portada').hidden=m!=='inicio';$('#appTepsi').hidden=m!=='tepsi';$('#appRN').hidden=m!=='rn';$('#appEedp').hidden=m!=='eedp';$('#appExfis').hidden=m!=='exfis';
-  $('#topSub').textContent=TIT[m][0];$('#topTit').textContent=TIT[m][1];$('#inicioBtn').hidden=m==='inicio';
-  try{if(m==='rn'&&window.RN)RN.iniciar();if(m==='exfis'&&window.EXFIS)EXFIS.iniciar();}catch(e){console.error(e);}
-  if(m==='inicio')requestAnimationFrame(regla);
-  if(!desdeHash){try{history.replaceState(null,'',m==='inicio'?location.pathname+location.search:'#'+m);}catch(e){}}
-  if(!desdeHash&&m==='inicio'){const f=$('#portTit');f.tabIndex=-1;f.focus({preventScroll:true});}
-}
-document.querySelectorAll('[data-ir]').forEach(b=>b.onclick=()=>ir(b.dataset.ir));
-$('#inicioBtn').onclick=()=>ir('inicio');
-
-// tallímetro: cada evaluación queda marcada a la altura de su paciente
-const MIN=20,MAX=125;
-function regla(){
-  const z=$('#reglaZona'),R=$('#regla');if(!z||z.offsetParent===null)return;
-  const H=z.clientHeight,niv=[...z.querySelectorAll('.nivel')];
-  const y=cm=>H*(MAX-cm)/(MAX-MIN);
-  const alto=Math.max(...niv.map(n=>n.querySelector('.nivel-txt').offsetHeight));
-  const cms=niv.map(x=>+x.dataset.cm).sort((a,b)=>b-a);const separadas=cms.slice(1).every((c,i)=>y(cms[i])-y(c)>=alto+20);const cabe=z.clientWidth>=560&&separadas&&y(cms[0])>=alto/2&&y(cms[cms.length-1])+alto/2<=H;
-  z.classList.toggle('compacta',!cabe);
-  if(!cabe){niv.forEach(n=>n.style.top='');R.innerHTML='';return;}
-  let h='';
-  for(let cm=MIN;cm<=MAX;cm++){const t=cm%10===0?'l':cm%5===0?'m':'s';h+=`<i class="t${t}" style="top:${y(cm)}px"></i>`;if(t==='l')h+=`<b style="top:${y(cm)}px">${cm}</b>`;}
-  niv.forEach(n=>{const de=+n.dataset.de,a=+n.dataset.a;h+=`<span class="banda" style="top:${y(a)}px;height:${y(de)-y(a)}px"></span>`;n.style.top=y(+n.dataset.cm)+'px';});
-  R.innerHTML=h;
-}
-new ResizeObserver(()=>{if(document.body.dataset.modulo==='inicio')regla();}).observe($('#reglaZona'));
-if(document.fonts)document.fonts.ready.then(regla);
-const h0=location.hash.slice(1);ir(TIT[h0]?h0:'inicio',true);
 })();
 
 </script>
