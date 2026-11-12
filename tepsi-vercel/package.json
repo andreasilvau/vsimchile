@@ -1,5 +1,8 @@
 {
   "name": "tepsi-3d",
   "private": true,
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "@neondatabase/serverless": "^1.2.0"
+  }
 }

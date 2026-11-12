@@ -1,0 +1,68 @@
+/* Panel docente y documentos del caso (versión Vercel + Neon). Usa las variables de color del simulador. */
+#vnDocs{margin-left:auto}
+#vnDocs:not([hidden])~#docenteBtn{margin-left:0}
+
+/* Casos creados por docentes, junto a los casos originales */
+.vn-var{border-style:dashed}
+.vn-var small{font-size:11px;font-weight:600;padding:1px 6px;border-radius:999px;background:var(--wait-soft);color:var(--wait)}
+
+/* Panel */
+.vn-panel{z-index:30}
+.vn-cab{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding:12px max(20px,env(safe-area-inset-right,0px)) 0 max(20px,env(safe-area-inset-left,0px));border-bottom:1px solid var(--line)}
+.vn-cab h2{font-family:var(--display);font-size:22px;color:var(--brand);margin:0 8px 0 0}
+.vn-cab h2:focus{outline:none}
+.vn-quien{margin-left:auto;font-size:13px;color:var(--muted);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vn-tabs{display:flex;gap:2px;width:100%;overflow-x:auto}
+.vn-tab{font:inherit;font-weight:600;font-size:15px;color:var(--muted);background:none;border:0;border-bottom:3px solid transparent;padding:10px 14px;min-height:44px;cursor:pointer;white-space:nowrap}
+.vn-tab:hover{color:var(--ink)}
+.vn-tab[aria-selected="true"]{color:var(--brand);border-bottom-color:var(--brand)}
+.vn-vista{flex:1;min-height:0;display:flex;flex-direction:column}
+.vn-vista[hidden]{display:none}
+.vn-scroll{overflow-y:auto;padding:16px 20px 32px;display:grid;gap:16px;align-content:start}
+.vn-vacio{color:var(--muted);font-size:15px;max-width:60ch;margin:0}
+.vn-etq{font-size:11px;font-weight:600;padding:2px 6px;border-radius:999px;white-space:nowrap}
+.vn-etq.pub{background:var(--ok-soft);color:var(--ok)}
+.vn-etq.bor{background:var(--wait-soft);color:var(--wait)}
+.doc-it.on .vn-etq{background:rgba(255,255,255,.2);color:inherit}
+.vn-nuevo{margin-bottom:6px}
+.vn-peligro{color:var(--hi);border-color:var(--hi)}
+.vn-peligro:hover{background:var(--hi-soft)}
+.vn-error{color:var(--hi)}
+
+/* Imágenes */
+.vn-subir{border:2px dashed var(--field);border-radius:12px;padding:18px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;background:var(--panel)}
+.vn-subir.sobre{border-color:var(--brand);background:var(--brand-soft)}
+.vn-subir p{margin:0;color:var(--muted);font-size:14px;flex:1 1 260px}
+.vn-grilla{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.vn-img{border:1px solid var(--line);border-radius:10px;background:var(--panel);overflow:hidden;display:grid;gap:8px;padding-bottom:10px}
+.vn-img img{width:100%;aspect-ratio:4/3;object-fit:cover;background:var(--escena);display:block}
+.vn-img .campo,.vn-img .vn-fila{padding:0 10px}
+.vn-fila{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;font-size:12px;color:var(--muted)}
+.vn-fila .btn{min-height:36px;padding:4px 10px;font-size:13px}
+.vn-adj{display:grid;gap:10px}
+.vn-adj-it{display:grid;grid-template-columns:84px minmax(0,1fr) auto;gap:10px;align-items:center}
+.vn-adj-it img{width:84px;height:63px;object-fit:cover;border-radius:6px;background:var(--escena)}
+.vn-tabla{border-collapse:collapse;width:100%;max-width:760px;font-size:14px}
+.vn-tabla th,.vn-tabla td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+.vn-tabla th{color:var(--muted);font-weight:600;font-size:12px}
+
+/* Diálogos: entrar y documentos */
+.vn-dlg{border:0;border-radius:14px;padding:0;width:min(440px,calc(100vw - 32px));background:var(--panel);color:var(--ink);box-shadow:0 12px 40px rgba(0,0,0,.3)}
+.vn-dlg::backdrop{background:rgba(3,20,34,.55)}
+.vn-dlg form,.vn-dlg .vn-dlg-in{display:grid;gap:12px;padding:22px 24px}
+.vn-dlg h3{font-family:var(--display);font-size:19px;margin:0;color:var(--brand)}
+.vn-dlg p{margin:0;font-size:14px;color:var(--muted)}
+.vn-dlg .vn-acc{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end;align-items:center}
+.vn-link{font:inherit;font-size:14px;color:var(--brand);background:none;border:0;padding:6px 0;cursor:pointer;text-decoration:underline;margin-right:auto;min-height:36px}
+.vn-dlg.ancho{width:min(900px,calc(100vw - 32px));max-height:calc(100dvh - 32px)}
+.vn-galeria{display:grid;gap:18px}
+.vn-galeria figure{margin:0;display:grid;gap:6px}
+.vn-galeria img{max-width:100%;max-height:70dvh;border-radius:8px;border:1px solid var(--line);justify-self:center;background:#fff}
+.vn-galeria figcaption{font-size:14px;color:var(--ink)}
+
+@media (max-width:700px){
+  .vn-adj-it{grid-template-columns:64px minmax(0,1fr)}
+  .vn-adj-it img{width:64px;height:48px}
+  .vn-adj-it .btn{grid-column:1/-1}
+  .vn-quien{display:none}
+}

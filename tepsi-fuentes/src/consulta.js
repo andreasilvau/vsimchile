@@ -38,6 +38,6 @@ ${M.hechos}`;
   return `${guia}\n\nCONVERSACIÓN HASTA AHORA:\n${turnos}\n\nResponde ahora como ${M.nombre} a la última pregunta de la estudiante. Solo el texto de la respuesta.`;
 }
 async function preguntarIA(historial){
-  if(API_MAMA){const r=await fetch(API_MAMA,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({caso,historial,prompt:promptMama(historial)})});if(!r.ok)throw {code:'http'};const j=await r.json();return j.texto;}
+  if(API_MAMA){const r=await fetch(API_MAMA,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({caso,variante:(window.VSIM&&VSIM.variante('tepsi'))||null,historial})});if(!r.ok)throw {code:'http'};const j=await r.json();return j.texto;}
   const {text}=await iaSample(promptMama(historial),{modelTier:'quick',cache:false});return text.trim().replace(/^["“]|["”]$/g,'');
 }

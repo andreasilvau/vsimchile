@@ -1947,7 +1947,7 @@ ${M.hechos}`;
   return `${guia}\n\nCONVERSACIÓN HASTA AHORA:\n${turnos}\n\nResponde ahora como ${M.nombre} a la última pregunta de la estudiante. Solo el texto de la respuesta.`;
 }
 async function preguntarIA(historial){
-  if(API_MAMA){const r=await fetch(API_MAMA,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({caso,historial,prompt:promptMama(historial)})});if(!r.ok)throw {code:'http'};const j=await r.json();return j.texto;}
+  if(API_MAMA){const r=await fetch(API_MAMA,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({caso,variante:(window.VSIM&&VSIM.variante('tepsi'))||null,historial})});if(!r.ok)throw {code:'http'};const j=await r.json();return j.texto;}
   const {text}=await iaSample(promptMama(historial),{modelTier:'quick',cache:false});return text.trim().replace(/^["“]|["”]$/g,'');
 }
 
@@ -3173,8 +3173,7 @@ function iniciar(){
   efCtl.update();
 
   /* ---------- Cargar modelo (mismo patrón que módulo RN) ---------- */
-  try{
-    const bin=Uint8Array.from(atob(RN_GLB),ch=>ch.charCodeAt(0)).buffer;
+  cargarBin('models/rn.glb').then(bin=>{
     const GL=new THREE.GLTFLoader();
     if(window.MeshoptDecoder)GL.setMeshoptDecoder(window.MeshoptDecoder);
     GL.parse(bin,'',g=>{
@@ -3435,4 +3434,6 @@ window.EXFIS={
 })();
 </script>
 
+<link rel="stylesheet" href="css/vsim-nube.css">
+<script src="js/vsim-nube.js"></script>
 </body></html>
