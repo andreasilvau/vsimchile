@@ -2934,13 +2934,7 @@ const vistas=[];
 const zonasVistas=new Set();
 let zonaActiva=null;
 
-/* ---------- Posiciones de hotspots en pantalla (normalizadas respecto al modelo) ---------- */
-const HOTSPOT_3D={
-  cabeza:{y:1.58,z:0},ojos:{y:1.52,z:.05},oidos:{y:1.50,z:0},boca:{y:1.46,z:.06},
-  cuello:{y:1.38,z:0},torax:{y:1.22,z:0},abdomen:{y:1.05,z:.04},
-  genitales:{y:.92,z:.03},ano:{y:.90,z:-.04},
-  extremidades:{y:.70,z:.08},piel:{y:1.30,z:.12},columna:{y:1.15,z:-.08}
-};
+/* hotspot 3D coords → ver EF_HSPOT más abajo (Three.js) */
 
 function renderListaZonas(){
   const c=document.getElementById('efContenido');
@@ -2980,12 +2974,15 @@ function actualizarProgreso(){
 }
 
 /* ---------- Three.js ---------- */
+const ESCALA_EF=.52/.686;  // misma escala que módulo RN (~52 cm)
+let efModelo,efRaiz,efCtl,efListo=false;
+
 function iniciar(){
-  if(efIniciado){efRenderer&&efRenderer.setAnimationLoop(animar);return;}
+  if(efIniciado){if(efRenderer)efRenderer.setAnimationLoop(animar);return;}
   efIniciado=true;
   efCanvas=document.createElement('canvas');
   const visor=document.getElementById('efVisor');
-  visor.querySelector('.cargando').remove();
+  const carg=visor.querySelector('.cargando');
   visor.appendChild(efCanvas);
   efCanvas.style.cssText='display:block;width:100%;height:100%;touch-action:none';
 
@@ -2994,50 +2991,49 @@ function iniciar(){
   efRenderer.outputEncoding=THREE.sRGBEncoding;
 
   efScene=new THREE.Scene();
-  efScene.background=new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue('--escena').trim()||'#dce9f3');
+  const bg=getComputedStyle(document.documentElement).getPropertyValue('--escena').trim()||'#dce9f3';
+  efScene.background=new THREE.Color(bg);
 
-  efCamera=new THREE.PerspectiveCamera(32,1,.1,50);
-  efCamera.position.set(0,1.2,3.5);
+  efCamera=new THREE.PerspectiveCamera(34,1,.05,20);
+  efCamera.position.set(.25,.85,.95);
 
-  const amb=new THREE.AmbientLight(0xffffff,.65);
-  const dir=new THREE.DirectionalLight(0xffffff,.7);dir.position.set(2,3,4);
-  const dir2=new THREE.DirectionalLight(0xffffff,.3);dir2.position.set(-2,2,-1);
-  efScene.add(amb,dir,dir2);
+  efScene.add(new THREE.AmbientLight(0xffffff,.65));
+  const d1=new THREE.DirectionalLight(0xffffff,.7);d1.position.set(2,3,4);efScene.add(d1);
+  const d2=new THREE.DirectionalLight(0xffffff,.3);d2.position.set(-2,2,-1);efScene.add(d2);
 
-  /* cargar modelo */
-  const loader=new THREE.GLTFLoader();
-  if(THREE.MeshoptDecoder)loader.setMeshoptDecoder(THREE.MeshoptDecoder);
-  const glbBin=Uint8Array.from(atob(window.RN_GLB),c=>c.charCodeAt(0));
-  loader.parse(glbBin.buffer,'',gltf=>{
-    const m=gltf.scene;
-    m.traverse(c=>{if(c.isMesh){
-      c.material=new THREE.MeshStandardMaterial({color:0xf5d0b5,roughness:.55,metalness:.05});
-      if(c.isSkinnedMesh)efMesh=c;
-    }});
-    /* centrar y escalar */
-    const box=new THREE.Box3().setFromObject(m);
-    const center=box.getCenter(new THREE.Vector3());
-    const size=box.getSize(new THREE.Vector3());
-    const maxDim=Math.max(size.x,size.y,size.z);
-    const scale=2.5/maxDim;
-    m.scale.setScalar(scale);
-    m.position.sub(center.multiplyScalar(scale));
-    m.position.y-=.1;
-    efScene.add(m);
+  /* OrbitControls (antes de cargar modelo, para tener el ctrl listo) */
+  efCtl=new THREE.OrbitControls(efCamera,efCanvas);
+  efCtl.target.set(0,0,-.05);
+  efCtl.enableDamping=true;efCtl.dampingFactor=.08;
+  efCtl.minDistance=.3;efCtl.maxDistance=2.5;
+  efCtl.maxPolarAngle=Math.PI*.48;
+  efCtl.update();
 
-    /* OrbitControls */
-    if(THREE.OrbitControls){
-      const ctrl=new THREE.OrbitControls(efCamera,efCanvas);
-      ctrl.target.set(0,1.1,0);
-      ctrl.enableDamping=true;ctrl.dampingFactor=.08;
-      ctrl.minDistance=1.5;ctrl.maxDistance=6;
-      ctrl.maxPolarAngle=Math.PI*.85;
-      ctrl.update();
-      window._efCtrl=ctrl;
-    }
-    colocarHotspots();
-    efRenderer.setAnimationLoop(animar);
-  },err=>console.error('ExFis GLB error',err));
+  /* cargar modelo (mismo patrón que módulo RN) */
+  try{
+    const bin=Uint8Array.from(atob(RN_GLB),ch=>ch.charCodeAt(0)).buffer;
+    const GL=new THREE.GLTFLoader();
+    if(window.MeshoptDecoder)GL.setMeshoptDecoder(window.MeshoptDecoder);
+    GL.parse(bin,'',g=>{
+      efModelo=g.scene;
+      efModelo.traverse(o=>{
+        if(o.isSkinnedMesh){efMesh=o;o.frustumCulled=false;}
+      });
+      /* acostar de espaldas como módulo RN */
+      efRaiz=new THREE.Group();
+      const acostar=new THREE.Group();
+      acostar.rotation.x=-Math.PI/2;
+      efModelo.scale.setScalar(ESCALA_EF);
+      acostar.add(efModelo);
+      efRaiz.add(acostar);
+      acostar.position.set(0,.045,.2);
+      efScene.add(efRaiz);
+      efListo=true;
+      if(carg)carg.remove();
+      efRenderer.setAnimationLoop(animar);
+      colocarHotspots();
+    },e=>{console.error('ExFis GLB:',e);if(carg)carg.textContent='No se pudo cargar el modelo del RN.';});
+  }catch(e){console.error(e);if(carg)carg.textContent='Error al decodificar modelo.';}
 
   /* vistas */
   document.querySelectorAll('[data-efv]').forEach(b=>{
@@ -3053,48 +3049,59 @@ function iniciar(){
   if(minBtn)minBtn.onclick=()=>{
     const p=document.getElementById('exfisPanel');
     p.classList.toggle('min');
-    minBtn.setAttribute('aria-expanded',!p.classList.contains('min'));
+    minBtn.setAttribute('aria-expanded',String(!p.classList.contains('min')));
   };
 
   renderListaZonas();
   resize();
-  window.addEventListener('resize',resize);
+  new ResizeObserver(resize).observe(visor);
 }
 
 function resize(){
   if(!efRenderer)return;
   const v=document.getElementById('efVisor');if(!v)return;
-  const w=v.clientWidth,h=v.clientHeight;
+  const w=v.clientWidth,h=v.clientHeight;if(!w||!h)return;
   efRenderer.setSize(w,h,false);
   efCamera.aspect=w/h;efCamera.updateProjectionMatrix();
   colocarHotspots();
 }
 
 function animar(){
-  if(window._efCtrl)window._efCtrl.update();
+  if(efCtl)efCtl.update();
   efRenderer.render(efScene,efCamera);
   colocarHotspots();
 }
 
+/* Vistas: el modelo está acostado en Z, la cabeza apunta hacia -Z */
+const EF_VISTAS={
+  frontal:{p:[.25,.85,.95],t:[0,0,-.05]},
+  dorsal:{p:[.25,.85,-.95],t:[0,0,-.05]},
+  lado:{p:[1.2,.7,.15],t:[0,0,-.05]}
+};
 function cambiarVista(v){
-  if(!efCamera||!window._efCtrl)return;
-  const ctrl=window._efCtrl;
-  const t={frontal:{x:0,y:1.2,z:3.5},dorsal:{x:0,y:1.2,z:-3.5},lado:{x:3.2,y:1.2,z:.5}};
-  const pos=t[v]||t.frontal;
-  efCamera.position.set(pos.x,pos.y,pos.z);
-  ctrl.target.set(0,1.1,0);
-  ctrl.update();
+  if(!efCamera||!efCtl)return;
+  const vt=EF_VISTAS[v]||EF_VISTAS.frontal;
+  efCamera.position.set(...vt.p);
+  efCtl.target.set(...vt.t);
+  efCtl.update();
 }
 
+/* Hotspot Z coords (modelo acostado: Y del cuerpo se mapea a Z de la escena) */
+const EF_HSPOT={
+  cabeza:{x:0,y:.06,z:-.18},ojos:{x:0,y:.07,z:-.16},oidos:{x:.04,y:.06,z:-.15},
+  boca:{x:0,y:.065,z:-.13},cuello:{x:0,y:.055,z:-.08},
+  torax:{x:0,y:.06,z:.02},abdomen:{x:0,y:.06,z:.1},
+  genitales:{x:0,y:.055,z:.16},ano:{x:0,y:.03,z:.18},
+  extremidades:{x:.06,y:.05,z:.28},piel:{x:.07,y:.06,z:.05},columna:{x:0,y:.02,z:.0}
+};
+
 function enfocarZona(id){
-  if(!efCamera||!window._efCtrl)return;
-  const h=HOTSPOT_3D[id];if(!h)return;
-  const ctrl=window._efCtrl;
-  ctrl.target.set(0,h.y,0);
-  const dist=id==='piel'?3.5:2.2;
-  efCamera.position.set(h.z>0?dist*.3:h.z<0?-dist*.3:0,h.y,dist);
-  ctrl.update();
-  /* resetear vista buttons */
+  if(!efCamera||!efCtl)return;
+  const h=EF_HSPOT[id];if(!h)return;
+  efCtl.target.set(h.x,h.y,h.z);
+  const dist=id==='piel'||id==='extremidades'?1.0:.6;
+  efCamera.position.set(h.x+.15,h.y+dist*.7,h.z+dist*.5);
+  efCtl.update();
   document.querySelectorAll('[data-efv]').forEach(x=>x.setAttribute('aria-pressed','false'));
 }
 
@@ -3105,8 +3112,8 @@ function colocarHotspots(){
   const w=efRenderer.domElement.clientWidth,h=efRenderer.domElement.clientHeight;
   let html='';
   ZONAS.forEach(z=>{
-    const hp=HOTSPOT_3D[z.id];if(!hp)return;
-    const v=new THREE.Vector3(0,hp.y,hp.z);
+    const hp=EF_HSPOT[z.id];if(!hp)return;
+    const v=new THREE.Vector3(hp.x,hp.y,hp.z);
     v.project(efCamera);
     const x=(v.x*.5+.5)*w;
     const y=(-.5*v.y+.5)*h;
