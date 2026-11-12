@@ -468,6 +468,40 @@ body:not(.lado) #rnPanel.min,#rnPanel.min{height:auto}
 .exfis-normal{background:var(--ok-soft);border-radius:8px;padding:8px 10px;font-size:13px}
 .exfis-normal b{color:var(--ok);font-weight:700}
 .exfis-ref{font-size:11px;color:var(--muted);margin:0;font-style:italic}
+/* Docente */
+.ef-docente-dialog{border:0;border-radius:14px;padding:24px 28px;max-width:360px;background:var(--panel);color:var(--ink);box-shadow:0 12px 40px rgba(0,0,0,.25)}
+.ef-docente-dialog::backdrop{background:rgba(0,20,40,.55)}
+.ef-docente-form{display:grid;gap:14px}
+.ef-docente-form h3{margin:0;font-family:var(--display);font-size:18px;color:var(--brand)}
+.ef-docente-form label{font-size:13px;font-weight:600;display:grid;gap:4px}
+.ef-docente-form input{font:inherit;font-size:15px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--escena)}
+.ef-docente-btns{display:flex;gap:10px;justify-content:flex-end}
+.ef-docente-btns button{font:inherit;font-size:13px;padding:8px 16px;border-radius:8px;border:1px solid var(--line);background:var(--panel);cursor:pointer}
+.ef-img-admin{margin-top:10px;padding:10px;border:1px dashed var(--cyan);border-radius:10px;background:rgba(0,200,255,.04)}
+.ef-img-admin h4{margin:0 0 6px;font-size:13px;font-weight:700;color:var(--cyan)}
+.ef-img-list{display:grid;gap:6px}
+.ef-img-card{display:flex;gap:8px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+.ef-img-card img{width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--line)}
+.ef-img-card .ef-img-info{flex:1;font-size:12px}
+.ef-img-card .ef-img-info b{display:block;margin-bottom:2px}
+.ef-img-card button{font:inherit;font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid var(--hi);color:var(--hi);background:none;cursor:pointer}
+.ef-img-upload{margin-top:8px}
+.ef-img-upload label{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--cyan);cursor:pointer}
+.ef-img-upload input[type=file]{display:none}
+.ef-img-upload select,.ef-img-upload input[type=text]{font:inherit;font-size:13px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--escena);margin-top:4px;width:100%}
+/* Imagen clínica para estudiante */
+.ef-img-eval{margin-top:10px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel)}
+.ef-img-eval img{width:100%;display:block;border-bottom:1px solid var(--line)}
+.ef-img-eval .ef-eval-q{padding:10px 12px;font-size:13px;font-weight:600;color:var(--ink)}
+.ef-img-eval .ef-eval-btns{display:flex;gap:8px;padding:0 12px 10px}
+.ef-img-eval .ef-eval-btns button{flex:1;font:inherit;font-size:13px;font-weight:600;padding:8px;border-radius:8px;border:1px solid var(--line);cursor:pointer;transition:all .15s}
+.ef-eval-btns .ef-btn-normal{background:var(--ok-soft);color:var(--ok);border-color:var(--ok)}
+.ef-eval-btns .ef-btn-alerta{background:var(--hi-soft);color:var(--hi);border-color:var(--hi)}
+.ef-eval-btns button.selected{box-shadow:inset 0 0 0 2px currentColor;font-weight:800}
+.ef-eval-feedback{padding:8px 12px;font-size:12px;border-top:1px solid var(--line)}
+.ef-eval-feedback.correcto{background:var(--ok-soft);color:var(--ok)}
+.ef-eval-feedback.incorrecto{background:var(--hi-soft);color:var(--hi)}
+.ef-docente-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--cyan);background:rgba(0,200,255,.1);padding:2px 8px;border-radius:999px;margin-left:8px}
 .exfis-progreso{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--muted)}
 .exfis-progreso .barra-bg{flex:1;height:6px;background:var(--line);border-radius:3px;overflow:hidden}
 .exfis-progreso .barra-fg{height:100%;background:var(--cyan);border-radius:3px;transition:width .3s ease}
@@ -715,13 +749,23 @@ body:not(.lado) #exfisPanel.min,#exfisPanel.min{height:auto}
   <div id="efHotspots" style="position:absolute;inset:0;z-index:2;pointer-events:none"></div>
 
   <section class="panel p-lado flota plegable exfis-panel" id="exfisPanel" aria-label="Examen físico del recién nacido">
-    <div class="panel-cab"><h2>Examen físico del RN</h2><button class="minbtn" type="button" data-efmin aria-expanded="true" aria-label="Minimizar panel" title="Minimizar panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button></div>
+    <div class="panel-cab"><h2 id="efPanelTit">Examen físico del RN</h2><button class="ibtn flota" style="font-size:11px;padding:3px 10px;margin-left:auto;margin-right:4px" onclick="EXFIS.docente()" title="Acceso docente">🔧 Docente</button><button class="minbtn" type="button" data-efmin aria-expanded="true" aria-label="Minimizar panel" title="Minimizar panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button></div>
     <div class="panel-cuerpo">
       <div class="exfis-progreso" id="efProgreso"><span id="efProgTxt">0 / 12</span><div class="barra-bg"><div class="barra-fg" id="efProgBar" style="width:0%"></div></div></div>
       <div id="efContenido"></div>
       <p class="nota" style="font-size:11px;margin-top:8px">Contenido basado en Guía Perinatal MINSAL 2015, Manual de Neonatología (Tapia) y Norma Técnica RN MINSAL. Datos ficticios, uso docente.</p>
     </div>
   </section>
+
+  <!-- Modal docente -->
+  <dialog class="ef-docente-dialog" id="efDocenteDialog">
+    <form method="dialog" class="ef-docente-form">
+      <h3>🔒 Acceso docente</h3>
+      <p>Ingresa la clave para administrar imágenes clínicas por zona.</p>
+      <label>Clave docente<input type="password" id="efDocClave" autocomplete="off" placeholder="••••••"></label>
+      <div class="ef-docente-btns"><button type="button" onclick="this.closest('dialog').close()">Cancelar</button><button type="submit" class="btn btn-primario" style="padding:8px 20px;min-height:auto">Entrar</button></div>
+    </form>
+  </dialog>
 </div>
 
 <script>
@@ -2935,19 +2979,24 @@ const ZONAS=[
 ];
 
 /* ---------- Datos del módulo ---------- */
-let efScene,efCamera,efRenderer,efMesh,efCanvas,efAnimId,efIniciado=false;
-const vistas=[];
+let efScene,efCamera,efRenderer,efMesh,efCanvas,efIniciado=false;
 const zonasVistas=new Set();
 let zonaActiva=null;
+let esDocente=false;
+const CLAVE_DOCENTE='exfis2024';
+const LS_KEY='efDocImg';
 
-/* hotspot 3D coords → ver EF_HSPOT más abajo (Three.js) */
+/* ---------- Almacén de imágenes docente (localStorage) ---------- */
+function getImgs(){try{return JSON.parse(localStorage.getItem(LS_KEY))||{};}catch(e){return {};}}
+function saveImgs(d){try{localStorage.setItem(LS_KEY,JSON.stringify(d));}catch(e){}}
 
+/* ---------- Panel: lista de zonas ---------- */
 function renderListaZonas(){
-  const c=document.getElementById('efContenido');
+  const c=document.getElementById('efContenido');if(!c)return;
   let h='<div class="exfis-zonas">';
   ZONAS.forEach(z=>{
     const v=zonasVistas.has(z.id);
-    h+=`<button class="exfis-zona${v?' vista':''}" data-zona="${z.id}"><span class="ez-ico">${z.ico}</span><span class="ez-nom">${z.nombre}</span><span class="ez-badge">${v?'✓ Revisado':'Pendiente'}</span></button>`;
+    h+=`<button class="exfis-zona${v?' vista':''}${zonaActiva===z.id?' activa':''}" data-zona="${z.id}"><span class="ez-ico">${z.ico}</span><span class="ez-nom">${z.nombre}</span><span class="ez-badge">${v?'✓ Revisado':'Pendiente'}</span></button>`;
   });
   h+='</div>';
   c.innerHTML=h;
@@ -2957,31 +3006,103 @@ function renderListaZonas(){
 
 function mostrarZona(id){
   const z=ZONAS.find(x=>x.id===id);if(!z)return;
-  zonaActiva=id;
-  zonasVistas.add(id);
-  const c=document.getElementById('efContenido');
+  zonaActiva=id;zonasVistas.add(id);
+  const c=document.getElementById('efContenido');if(!c)return;
+  const imgs=getImgs();const zonImgs=(imgs[id]||[]);
+  /* Imágenes para evaluación del estudiante */
+  let imgHtml='';
+  if(zonImgs.length){
+    imgHtml='<div style="margin-top:10px"><h4 style="font-size:14px;margin:0 0 8px;color:var(--brand)">📷 Imágenes clínicas — ¿normal o alterado?</h4>';
+    zonImgs.forEach((im,i)=>{
+      imgHtml+=`<div class="ef-img-eval" style="margin-bottom:8px" data-imgidx="${i}">
+        <img src="${im.src}" alt="${im.titulo||'Imagen clínica'}" loading="lazy">
+        <div class="ef-eval-q">${im.titulo||'Observa la imagen.'} ¿Es un hallazgo normal o un signo de alerta?</div>
+        <div class="ef-eval-btns">
+          <button class="ef-btn-normal" data-resp="normal" data-idx="${i}">✓ Normal</button>
+          <button class="ef-btn-alerta" data-resp="alerta" data-idx="${i}">⚠ Signo de alerta</button>
+        </div>
+        <div class="ef-eval-feedback" id="efFb${i}" hidden></div>
+      </div>`;
+    });
+    imgHtml+='</div>';
+  }
+  /* Sección de administración docente */
+  let adminHtml='';
+  if(esDocente){
+    adminHtml=`<div class="ef-img-admin">
+      <h4>🔧 Administrar imágenes — ${z.nombre}</h4>
+      <div class="ef-img-list" id="efImgList${id}">`;
+    zonImgs.forEach((im,i)=>{
+      adminHtml+=`<div class="ef-img-card"><img src="${im.src}"><div class="ef-img-info"><b>${im.titulo||'Sin título'}</b>${im.esNormal?'Normal':'Alerta'}</div><button data-delidx="${i}" data-delzona="${id}">Eliminar</button></div>`;
+    });
+    if(!zonImgs.length)adminHtml+='<p style="font-size:12px;color:var(--muted)">Sin imágenes. Agrega una para que los estudiantes evalúen.</p>';
+    adminHtml+=`</div>
+      <div class="ef-img-upload" style="margin-top:10px;display:grid;gap:6px">
+        <label>📎 Subir imagen<input type="file" accept="image/*" id="efImgFile${id}"></label>
+        <input type="text" placeholder="Título o descripción breve" id="efImgTit${id}">
+        <select id="efImgTipo${id}"><option value="normal">Hallazgo normal</option><option value="alerta">Signo de alerta</option></select>
+        <button class="btn btn-primario" style="padding:6px 16px;min-height:auto;font-size:13px" id="efImgAdd${id}">Agregar imagen</button>
+      </div>
+    </div>`;
+  }
   c.innerHTML=`<div class="exfis-detalle">
     <button class="exfis-back" onclick="EXFIS.volver()">← Volver al listado</button>
     <h3><span class="ez-ico">${z.ico}</span> ${z.nombre}</h3>
     <div class="exfis-normal">${z.normal}</div>
     <div class="exfis-alerta">${z.alerta}</div>
+    ${imgHtml}
+    ${adminHtml}
     <p class="exfis-ref">📚 ${z.ref}</p>
   </div>`;
-  actualizarProgreso();
-  actualizarHotspots();
-  /* mover cámara hacia la zona */
-  enfocarZona(id);
+  actualizarProgreso();colocarHotspots();enfocarZona(id);
+  /* Bind evaluación de imágenes */
+  c.querySelectorAll('.ef-eval-btns button').forEach(b=>b.onclick=()=>{
+    const idx=+b.dataset.idx,resp=b.dataset.resp;
+    const im=zonImgs[idx];if(!im)return;
+    const fb=document.getElementById('efFb'+idx);if(!fb)return;
+    const correcto=(resp==='normal'&&im.esNormal)||(resp==='alerta'&&!im.esNormal);
+    fb.hidden=false;
+    fb.className='ef-eval-feedback '+(correcto?'correcto':'incorrecto');
+    fb.textContent=correcto?'✓ ¡Correcto! '+(im.esNormal?'Es un hallazgo normal.':'Es un signo de alerta.'):'✗ Incorrecto. '+(im.esNormal?'Este es un hallazgo normal.':'Este es un signo de alerta.');
+    b.closest('.ef-eval-btns').querySelectorAll('button').forEach(x=>{x.classList.remove('selected');x.disabled=true;});
+    b.classList.add('selected');
+  });
+  /* Bind admin docente */
+  if(esDocente){
+    const addBtn=document.getElementById('efImgAdd'+id);
+    if(addBtn)addBtn.onclick=()=>{
+      const f=document.getElementById('efImgFile'+id);
+      const tit=document.getElementById('efImgTit'+id);
+      const tipo=document.getElementById('efImgTipo'+id);
+      if(!f||!f.files[0])return alert('Selecciona una imagen');
+      const reader=new FileReader();
+      reader.onload=ev=>{
+        const d=getImgs();if(!d[id])d[id]=[];
+        d[id].push({src:ev.target.result,titulo:tit.value.trim()||'',esNormal:tipo.value==='normal'});
+        saveImgs(d);mostrarZona(id);
+      };
+      reader.readAsDataURL(f.files[0]);
+    };
+    c.querySelectorAll('[data-delidx]').forEach(b=>b.onclick=()=>{
+      const zona=b.dataset.delzona,idx=+b.dataset.delidx;
+      if(!confirm('¿Eliminar esta imagen?'))return;
+      const d=getImgs();if(d[zona]){d[zona].splice(idx,1);saveImgs(d);}
+      mostrarZona(zona);
+    });
+  }
 }
 
 function actualizarProgreso(){
   const n=zonasVistas.size,t=ZONAS.length;
-  document.getElementById('efProgTxt').textContent=`${n} / ${t}`;
-  document.getElementById('efProgBar').style.width=`${Math.round(n/t*100)}%`;
+  const pt=document.getElementById('efProgTxt'),pb=document.getElementById('efProgBar');
+  if(pt)pt.textContent=`${n} / ${t}`;
+  if(pb)pb.style.width=`${Math.round(n/t*100)}%`;
 }
 
 /* ---------- Three.js ---------- */
-const ESCALA_EF=.52/.686;  // misma escala que módulo RN (~52 cm)
-let efModelo,efRaiz,efCtl,efListo=false;
+const ESCALA_EF=.52/.686;
+let efModelo,efRaiz,efCtl,efListo=false,efBones={};
+const lin=c=>new THREE.Color(c);
 
 function iniciar(){
   if(efIniciado){if(efRenderer)efRenderer.setAnimationLoop(animar);return;}
@@ -2995,42 +3116,83 @@ function iniciar(){
   efRenderer=new THREE.WebGLRenderer({canvas:efCanvas,antialias:true,alpha:true});
   efRenderer.setPixelRatio(Math.min(devicePixelRatio,2));
   efRenderer.outputEncoding=THREE.sRGBEncoding;
+  efRenderer.shadowMap.enabled=true;
 
   efScene=new THREE.Scene();
-  const bg=getComputedStyle(document.documentElement).getPropertyValue('--escena').trim()||'#dce9f3';
-  efScene.background=new THREE.Color(bg);
+  efScene.background=new THREE.Color('#e8eff6');
 
   efCamera=new THREE.PerspectiveCamera(34,1,.05,20);
   efCamera.position.set(.25,.85,.95);
 
-  efScene.add(new THREE.AmbientLight(0xffffff,.65));
-  const d1=new THREE.DirectionalLight(0xffffff,.7);d1.position.set(2,3,4);efScene.add(d1);
+  /* Iluminación APS */
+  efScene.add(new THREE.AmbientLight(0xffffff,.6));
+  const d1=new THREE.DirectionalLight(0xffffff,.75);d1.position.set(2,3,4);d1.castShadow=true;d1.shadow.mapSize.set(512,512);efScene.add(d1);
   const d2=new THREE.DirectionalLight(0xffffff,.3);d2.position.set(-2,2,-1);efScene.add(d2);
 
-  /* OrbitControls (antes de cargar modelo, para tener el ctrl listo) */
+  /* ---------- Entorno APS: mesa de examen ---------- */
+  /* Mesa / camilla de examen */
+  const mesaGeo=new THREE.BoxGeometry(.65,.03,.75);
+  const mesaMat=new THREE.MeshStandardMaterial({color:0xe2eaf4,roughness:.4});
+  const mesa=new THREE.Mesh(mesaGeo,mesaMat);
+  mesa.position.set(0,.015,.05);mesa.receiveShadow=true;efScene.add(mesa);
+  /* Sábana sobre la mesa */
+  const sabana=new THREE.Mesh(new THREE.PlaneGeometry(.62,.72),new THREE.MeshStandardMaterial({color:0xf7f9fc,roughness:.8}));
+  sabana.rotation.x=-Math.PI/2;sabana.position.set(0,.032,.05);sabana.receiveShadow=true;efScene.add(sabana);
+  /* Patas de la mesa */
+  const pataGeo=new THREE.CylinderGeometry(.012,.012,.25,8);
+  const pataMat=new THREE.MeshStandardMaterial({color:0x8899aa,roughness:.3,metalness:.4});
+  [[-0.28,-.11,-.3],[.28,-.11,-.3],[-.28,-.11,.4],[.28,-.11,.4]].forEach(p=>{
+    const pa=new THREE.Mesh(pataGeo,pataMat);pa.position.set(...p);efScene.add(pa);
+  });
+  /* Pared de fondo (consultorio APS) */
+  const pared=new THREE.Mesh(new THREE.PlaneGeometry(4,3),new THREE.MeshStandardMaterial({color:0xd6e3ef,roughness:.9}));
+  pared.position.set(0,1.2,-1);efScene.add(pared);
+  /* Piso */
+  const piso=new THREE.Mesh(new THREE.PlaneGeometry(4,4),new THREE.MeshStandardMaterial({color:0xc8d5e0,roughness:.85}));
+  piso.rotation.x=-Math.PI/2;piso.position.set(0,-.24,0);piso.receiveShadow=true;efScene.add(piso);
+  /* Póster MINSAL en la pared */
+  const posterC=document.createElement('canvas');posterC.width=256;posterC.height=128;
+  const pg=posterC.getContext('2d');
+  pg.fillStyle='#ffffff';pg.fillRect(0,0,256,128);
+  pg.fillStyle='#0a2a5c';pg.fillRect(0,0,256,22);
+  pg.font='bold 13px sans-serif';pg.fillStyle='#ffffff';pg.fillText('CONTROL DE SALUD INFANTIL',18,16);
+  pg.font='10px sans-serif';pg.fillStyle='#333';pg.fillText('Norma Técnica RN — MINSAL Chile',18,42);
+  pg.fillText('Examen físico segmentario del',18,58);pg.fillText('recién nacido sano',18,72);
+  pg.fillStyle='#0097b2';pg.fillRect(12,88,232,2);
+  pg.font='9px sans-serif';pg.fillStyle='#666';pg.fillText('Atención Primaria de Salud',18,106);
+  const posterTex=new THREE.CanvasTexture(posterC);posterTex.encoding=THREE.sRGBEncoding;
+  const poster=new THREE.Mesh(new THREE.PlaneGeometry(.5,.25),new THREE.MeshStandardMaterial({map:posterTex}));
+  poster.position.set(-.5,1.5,-.99);efScene.add(poster);
+
+  /* OrbitControls */
   efCtl=new THREE.OrbitControls(efCamera,efCanvas);
-  efCtl.target.set(0,0,-.05);
+  efCtl.target.set(0,.04,-.05);
   efCtl.enableDamping=true;efCtl.dampingFactor=.08;
   efCtl.minDistance=.3;efCtl.maxDistance=2.5;
   efCtl.maxPolarAngle=Math.PI*.48;
   efCtl.update();
 
-  /* cargar modelo (mismo patrón que módulo RN) */
-  cargarBin('models/rn.glb').then(bin=>{
+  /* ---------- Cargar modelo (mismo patrón que módulo RN) ---------- */
+  try{
+    const bin=Uint8Array.from(atob(RN_GLB),ch=>ch.charCodeAt(0)).buffer;
     const GL=new THREE.GLTFLoader();
     if(window.MeshoptDecoder)GL.setMeshoptDecoder(window.MeshoptDecoder);
     GL.parse(bin,'',g=>{
-      efModelo=g.scene;
-      efModelo.traverse(o=>{
-        if(o.isSkinnedMesh){efMesh=o;o.frustumCulled=false;}
-      });
-      /* acostar de espaldas como módulo RN */
+      efModelo=g.scene;let malla=null;
+      efModelo.traverse(o=>{if(o.isBone)efBones[o.name]=o;if(o.isSkinnedMesh){malla=o;efMesh=o;o.frustumCulled=false;}});
+      efModelo.updateMatrixWorld(true);
+      const pos=n=>new THREE.Vector3().setFromMatrixPosition(efBones[n].matrixWorld);
+      /* cabeza algo mayor (proporción RN) */
+      if(efBones.head)efBones.head.scale.setScalar(1.1);
+      /* vestir piel, ojos, boca, gorro */
+      if(malla)efVestir(malla,pos);
+      efOjos(pos);efBoca(pos);efGorro(pos);
+      /* acostar de espaldas sobre la mesa */
       efRaiz=new THREE.Group();
       const acostar=new THREE.Group();
       acostar.rotation.x=-Math.PI/2;
       efModelo.scale.setScalar(ESCALA_EF);
-      acostar.add(efModelo);
-      efRaiz.add(acostar);
+      acostar.add(efModelo);efRaiz.add(acostar);
       acostar.position.set(0,.045,.2);
       efScene.add(efRaiz);
       efListo=true;
@@ -3040,34 +3202,170 @@ function iniciar(){
     },e=>{console.error('ExFis GLB:',e);if(carg)carg.textContent='No se pudo cargar el modelo del RN.';});
   }).catch(e=>{console.error(e);if(carg)carg.textContent='No se pudo cargar el modelo del RN.';});
 
-  /* vistas */
+  /* Raycasting: clic en el modelo para seleccionar zona */
+  efCanvas.addEventListener('pointerup',e=>{
+    if(!efMesh||!efListo)return;
+    const rect=efCanvas.getBoundingClientRect();
+    const mx=((e.clientX-rect.left)/rect.width)*2-1;
+    const my=-((e.clientY-rect.top)/rect.height)*2+1;
+    const rc=new THREE.Raycaster();
+    rc.setFromCamera(new THREE.Vector2(mx,my),efCamera);
+    const hits=rc.intersectObject(efMesh,false);
+    if(!hits.length)return;
+    const pt=hits[0].point;
+    /* encontrar la zona más cercana al punto de impacto */
+    let best=null,bestDist=Infinity;
+    for(const [zid,hp] of Object.entries(EF_HSPOT)){
+      const d=Math.sqrt((pt.x-hp.x)**2+(pt.y-hp.y)**2+(pt.z-hp.z)**2);
+      if(d<bestDist){bestDist=d;best=zid;}
+    }
+    if(best&&bestDist<.15)mostrarZona(best);
+  });
+
+  /* Vistas */
   document.querySelectorAll('[data-efv]').forEach(b=>{
     b.onclick=()=>{
       document.querySelectorAll('[data-efv]').forEach(x=>x.setAttribute('aria-pressed','false'));
-      b.setAttribute('aria-pressed','true');
-      cambiarVista(b.dataset.efv);
+      b.setAttribute('aria-pressed','true');cambiarVista(b.dataset.efv);
     };
   });
 
-  /* minimizar panel */
+  /* Minimizar panel */
   const minBtn=document.querySelector('[data-efmin]');
   if(minBtn)minBtn.onclick=()=>{
     const p=document.getElementById('exfisPanel');
-    p.classList.toggle('min');
-    minBtn.setAttribute('aria-expanded',String(!p.classList.contains('min')));
+    p.classList.toggle('min');minBtn.setAttribute('aria-expanded',String(!p.classList.contains('min')));
   };
 
-  renderListaZonas();
-  resize();
+  /* Docente dialog */
+  const dlg=document.getElementById('efDocenteDialog');
+  if(dlg)dlg.querySelector('form').onsubmit=ev=>{
+    ev.preventDefault();
+    const c=document.getElementById('efDocClave');
+    if(c&&c.value===CLAVE_DOCENTE){esDocente=true;dlg.close();
+      const tit=document.getElementById('efPanelTit');if(tit)tit.innerHTML='Examen físico del RN <span class="ef-docente-badge">Docente</span>';
+      renderListaZonas();
+    }else{alert('Clave incorrecta');if(c)c.value='';}
+  };
+
+  renderListaZonas();resize();
   new ResizeObserver(resize).observe(visor);
+}
+
+/* ---------- Vestir el modelo (réplica de módulo RN) ---------- */
+function efVestir(malla,pos){
+  const geo=malla.geometry,P=geo.attributes.position,N=geo.attributes.normal,n=P.count;
+  const SI=geo.attributes.skinIndex,SW=geo.attributes.skinWeight,huesos=malla.skeleton.bones;
+  const col=new Float32Array(n*3);
+  const piel=lin('#eaaf9a'),pelo=lin('#5b4334'),rosa=lin('#e29a8c'),mej=lin('#e08a80'),labio=lin('#c9707a'),ceja=lin('#8a6a5c'),oreja=lin('#e39a8e');
+  const ojo=pos('eyeL'),boca=pos('oris05'),ojoD=pos('eyeR');
+  const gauss=(v,c,rx,ry,rz)=>Math.exp(-(((v.x-c.x)/rx)**2+((v.y-c.y)/ry)**2+((v.z-c.z)/rz)**2));
+  const v=new THREE.Vector3();
+  const comp=(A,i,k)=>{const x=k===0?A.getX(i):k===1?A.getY(i):k===2?A.getZ(i):A.getW(i);const arr=A.array||A.data.array;return A.normalized?x/(arr instanceof Uint8Array?255:arr instanceof Uint16Array?65535:1):x;};
+  const dom=i=>{let m=0,b=0;for(let k=0;k<4;k++){const w=comp(SW,i,k);if(w>m){m=w;b=comp(SI,i,k);}}return huesos[b].name;};
+  const enPanal=new Uint8Array(n);
+  for(let i=0;i<n;i++){
+    v.fromBufferAttribute(P,i);let c=piel;const ax=Math.abs(v.x),d=dom(i),muslo=/^(upper|lower)leg/.test(d);
+    if(v.y<.35&&ax<.1&&(muslo?(v.y>.272+(ax-.04)*.3):v.y>.2))enPanal[i]=1;
+    if(enPanal[i])c=lin('#f3f5f7');
+    else if(v.y>ojo.y+.028&&v.z<.05&&(v.y>ojo.y+.05||v.z<.0)){const k=Math.min(1,(v.y-ojo.y-.028)/.03);c=piel.clone().lerp(pelo,.55*k);}
+    else if(v.y<.03||(ax>.16&&v.y<.4)){c=piel.clone().lerp(rosa,.5);}
+    if(!enPanal[i]){
+      c=c.clone();
+      const cm=Math.max(gauss(v,{x:ojo.x*2.1,y:ojo.y-.03,z:ojo.z},.02,.022,.04),gauss(v,{x:ojoD.x*2.1,y:ojoD.y-.03,z:ojoD.z},.02,.022,.04));
+      if(cm>.02)c.lerp(mej,.7*cm);
+      const lb=gauss(v,{x:boca.x,y:boca.y-.001,z:boca.z},.016,.007,.03);if(lb>.03)c.lerp(labio,.65*lb);
+      const cj=Math.max(gauss(v,{x:ojo.x,y:ojo.y+.02,z:ojo.z},.022,.008,.03),gauss(v,{x:ojoD.x,y:ojoD.y+.02,z:ojoD.z},.022,.008,.03));if(cj>.03)c.lerp(ceja,.55*cj);
+      if(ax>.06&&v.y>ojo.y-.04&&v.y<ojo.y+.03&&v.z<ojo.z-.02)c.lerp(oreja,.35);
+    }
+    col[i*3]=c.r;col[i*3+1]=c.g;col[i*3+2]=c.b;
+  }
+  geo.setAttribute('color',new THREE.BufferAttribute(col,3));
+  malla.material=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.58,skinning:true});
+  /* pañal */
+  const I=geo.index.array,tri=[];
+  const yv=k=>P.getY(k);
+  for(let f=0;f<I.length;f+=3)if(enPanal[I[f]]&&enPanal[I[f+1]]&&enPanal[I[f+2]]&&Math.min(yv(I[f]),yv(I[f+1]),yv(I[f+2]))>.256)tri.push(I[f],I[f+1],I[f+2]);
+  const usados=new Map(),borde=new Uint8Array(n);
+  for(let f=0;f<I.length;f+=3){const a=enPanal[I[f]]+enPanal[I[f+1]]+enPanal[I[f+2]];if(a>0&&a<3)for(let k=0;k<3;k++)if(enPanal[I[f+k]])borde[I[f+k]]=1;}
+  const mapa=x=>{if(!usados.has(x))usados.set(x,usados.size);return usados.get(x);};
+  const idx=tri.map(mapa),m=usados.size;
+  const pD=new Float32Array(m*3),nD=new Float32Array(m*3),cD=new Float32Array(m*3),siD=new Float32Array(m*4),swD=new Float32Array(m*4);
+  const blanco=lin('#fbfcfd'),pretina=lin('#cde5f5'),puno=lin('#e6eef4'),linea=lin('#efe2a6'),cinta=lin('#8fc3e8'),estampa=lin('#e3f0fa');
+  const nn=new THREE.Vector3();
+  for(const [o,k] of usados){
+    v.fromBufferAttribute(P,o);nn.fromBufferAttribute(N,o);const ax=Math.abs(v.x);
+    const grosor=(v.y<.29&&ax<.05)?.0075:.006;
+    v.addScaledVector(nn,grosor);pD.set([v.x,v.y,v.z],k*3);nD.set([nn.x,nn.y,nn.z],k*3);
+    for(let c=0;c<4;c++){siD[k*4+c]=comp(SI,o,c);swD[k*4+c]=comp(SW,o,c);}
+    let c=blanco;
+    if(v.y>.338)c=pretina;else if(borde[o])c=puno;
+    else if(ax<.0026&&v.z>.035&&v.y>.295&&v.y<.33)c=linea;
+    else if(ax>.068&&v.y>.315&&v.z<.03)c=cinta;
+    else if(v.z>.04&&v.y>.3&&ax<.032&&((Math.round(v.x*900)+Math.round(v.y*900))%7===0))c=estampa;
+    cD.set([c.r,c.g,c.b],k*3);
+  }
+  const vec=Array.from({length:m},()=>new Set());
+  for(let t=0;t<idx.length;t+=3)for(let a=0;a<3;a++)for(let b=0;b<3;b++)if(a!==b)vec[idx[t+a]].add(idx[t+b]);
+  for(let it=0;it<4;it++){const q=pD.slice();for(let k=0;k<m;k++){const nb=vec[k];if(!nb.size)continue;let x=0,y=0,z=0;for(const o of nb){x+=q[o*3];y+=q[o*3+1];z+=q[o*3+2];}const c=nb.size,w=q[k*3+1]<.3?.6:.35;pD[k*3]=q[k*3]*(1-w)+x/c*w;pD[k*3+1]=q[k*3+1]*(1-w)+y/c*w;pD[k*3+2]=q[k*3+2]*(1-w)+z/c*w;}}
+  const gD=new THREE.BufferGeometry();
+  gD.setAttribute('position',new THREE.BufferAttribute(pD,3));gD.setAttribute('normal',new THREE.BufferAttribute(nD,3));gD.setAttribute('color',new THREE.BufferAttribute(cD,3));
+  gD.setAttribute('skinIndex',new THREE.BufferAttribute(siD,4));gD.setAttribute('skinWeight',new THREE.BufferAttribute(swD,4));
+  gD.setIndex(idx);gD.computeVertexNormals();
+  const panal=new THREE.SkinnedMesh(gD,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.92,skinning:true}));
+  panal.frustumCulled=false;malla.parent.add(panal);panal.position.copy(malla.position);panal.quaternion.copy(malla.quaternion);panal.scale.copy(malla.scale);
+  panal.bind(malla.skeleton,malla.bindMatrix);
+}
+/* ojos */
+function efOjos(pos){
+  const cab=efBones.head;if(!cab)return;
+  const M=(c,r)=>new THREE.MeshStandardMaterial({color:lin(c),roughness:r});
+  const esc=M('#f2efec',.25),iri=M('#3d4656',.3),pup=M('#101218',.2);
+  const qi=new THREE.Quaternion();cab.getWorldQuaternion(qi);qi.invert();
+  const R=.0163;
+  for(const s of ['L','R']){const p=pos('eye'+s);
+    const g=new THREE.Group();g.add(new THREE.Mesh(new THREE.SphereGeometry(R,28,20),esc));
+    const iris=new THREE.Mesh(new THREE.SphereGeometry(R*1.004,28,10,0,Math.PI*2,0,.47),iri);iris.rotation.x=Math.PI/2;g.add(iris);
+    const pupila=new THREE.Mesh(new THREE.SphereGeometry(R*1.008,20,6,0,Math.PI*2,0,.2),pup);pupila.rotation.x=Math.PI/2;g.add(pupila);
+    g.position.copy(cab.worldToLocal(p.clone().add(new THREE.Vector3(0,-.0005,.001))));g.quaternion.copy(qi);
+    cab.add(g);}
+}
+/* boca */
+function efBoca(pos){
+  const cab=efBones.head,mand=efBones.jaw;if(!cab||!mand)return;
+  const m=pos('oris05');
+  const fondo=new THREE.Mesh(new THREE.SphereGeometry(1,24,16),new THREE.MeshStandardMaterial({color:lin('#6a2f35'),roughness:.8,side:THREE.DoubleSide}));
+  fondo.position.copy(cab.worldToLocal(m.clone().add(new THREE.Vector3(0,-.003,-.022))));
+  fondo.scale.set(.024,.02,.026).divideScalar(1.1);cab.add(fondo);
+  const len=new THREE.Mesh(new THREE.SphereGeometry(1,24,14),new THREE.MeshStandardMaterial({color:lin('#d98a8e'),roughness:.55}));
+  len.position.copy(mand.worldToLocal(m.clone().add(new THREE.Vector3(0,-.0125,-.016))));
+  len.scale.set(.011,.005,.017);mand.add(len);
+}
+/* gorro */
+function efGorro(pos){
+  const cab=efBones.head;if(!cab)return;
+  const c=document.createElement('canvas');c.width=256;c.height=256;const g=c.getContext('2d');
+  g.fillStyle='#f6f4ef';g.fillRect(0,0,256,256);
+  [['#7fb9de',70],['#f2a7b6',96],['#7fb9de',122]].forEach(([col,y])=>{g.fillStyle=col;g.fillRect(0,y,256,12);});
+  for(let x=0;x<256;x+=8)for(let y=0;y<256;y+=8){g.fillStyle='rgba(0,0,0,.06)';g.beginPath();g.ellipse(x+4,y+4,2.2,3.4,0,0,7);g.fill();}
+  const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;t.wrapS=THREE.RepeatWrapping;t.repeat.set(6,1);
+  const mat=new THREE.MeshStandardMaterial({map:t,roughness:1});
+  const G=new THREE.Group(),T=1.62;
+  G.add(new THREE.Mesh(new THREE.SphereGeometry(1,48,24,0,Math.PI*2,0,T),mat));
+  const borde=new THREE.Mesh(new THREE.TorusGeometry(Math.sin(T),.045,12,64),new THREE.MeshStandardMaterial({color:lin('#f6f4ef'),roughness:1}));
+  borde.rotation.x=Math.PI/2;borde.position.y=Math.cos(T);G.add(borde);
+  const nudo=new THREE.Mesh(new THREE.SphereGeometry(.16,14,10),mat);nudo.position.y=1.02;G.add(nudo);
+  G.position.copy(cab.worldToLocal(new THREE.Vector3(0,.6,.006)));
+  const qi=new THREE.Quaternion();cab.getWorldQuaternion(qi);qi.invert();
+  G.quaternion.copy(qi).multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),-.3));
+  G.scale.set(.058,.071,.078);cab.add(G);
 }
 
 function resize(){
   if(!efRenderer)return;
   const v=document.getElementById('efVisor');if(!v)return;
   const w=v.clientWidth,h=v.clientHeight;if(!w||!h)return;
-  efRenderer.setSize(w,h,false);
-  efCamera.aspect=w/h;efCamera.updateProjectionMatrix();
+  efRenderer.setSize(w,h,false);efCamera.aspect=w/h;efCamera.updateProjectionMatrix();
   colocarHotspots();
 }
 
@@ -3077,21 +3375,19 @@ function animar(){
   colocarHotspots();
 }
 
-/* Vistas: el modelo está acostado en Z, la cabeza apunta hacia -Z */
+/* Vistas: modelo acostado, cabeza hacia -Z */
 const EF_VISTAS={
-  frontal:{p:[.25,.85,.95],t:[0,0,-.05]},
-  dorsal:{p:[.25,.85,-.95],t:[0,0,-.05]},
-  lado:{p:[1.2,.7,.15],t:[0,0,-.05]}
+  frontal:{p:[.25,.85,.95],t:[0,.04,-.05]},
+  dorsal:{p:[.25,.85,-.95],t:[0,.04,-.05]},
+  lado:{p:[1.2,.7,.15],t:[0,.04,-.05]}
 };
 function cambiarVista(v){
   if(!efCamera||!efCtl)return;
   const vt=EF_VISTAS[v]||EF_VISTAS.frontal;
-  efCamera.position.set(...vt.p);
-  efCtl.target.set(...vt.t);
-  efCtl.update();
+  efCamera.position.set(...vt.p);efCtl.target.set(...vt.t);efCtl.update();
 }
 
-/* Hotspot Z coords (modelo acostado: Y del cuerpo se mapea a Z de la escena) */
+/* Hotspot 3D coords (modelo acostado) */
 const EF_HSPOT={
   cabeza:{x:0,y:.06,z:-.18},ojos:{x:0,y:.07,z:-.16},oidos:{x:.04,y:.06,z:-.15},
   boca:{x:0,y:.065,z:-.13},cuello:{x:0,y:.055,z:-.08},
@@ -3112,7 +3408,7 @@ function enfocarZona(id){
 
 /* ---------- Hotspots 2D superpuestos ---------- */
 function colocarHotspots(){
-  if(!efCamera||!efRenderer)return;
+  if(!efCamera||!efRenderer||!efListo)return;
   const cont=document.getElementById('efHotspots');if(!cont)return;
   const w=efRenderer.domElement.clientWidth,h=efRenderer.domElement.clientHeight;
   let html='';
@@ -3120,22 +3416,21 @@ function colocarHotspots(){
     const hp=EF_HSPOT[z.id];if(!hp)return;
     const v=new THREE.Vector3(hp.x,hp.y,hp.z);
     v.project(efCamera);
-    const x=(v.x*.5+.5)*w;
-    const y=(-.5*v.y+.5)*h;
-    if(v.z>1)return;/* detrás de la cámara */
+    const x=(v.x*.5+.5)*w,y=(-.5*v.y+.5)*h;
+    if(v.z>1)return;
     const act=zonaActiva===z.id?' activo':'';
-    html+=`<div class="exfis-hotspot${act}" style="left:${x}px;top:${y}px;pointer-events:auto" data-hszona="${z.id}"><span class="ef-tip">${z.nombre}</span></div>`;
+    const vista=zonasVistas.has(z.id)?' vista':'';
+    html+=`<div class="exfis-hotspot${act}${vista}" style="left:${x}px;top:${y}px;pointer-events:auto" data-hszona="${z.id}"><span class="ef-tip">${z.nombre}</span></div>`;
   });
   cont.innerHTML=html;
   cont.querySelectorAll('[data-hszona]').forEach(el=>el.onclick=()=>mostrarZona(el.dataset.hszona));
 }
 
-function actualizarHotspots(){colocarHotspots();}
-
 /* ---------- API global ---------- */
 window.EXFIS={
   iniciar,
-  volver(){zonaActiva=null;renderListaZonas();actualizarHotspots();}
+  volver(){zonaActiva=null;renderListaZonas();colocarHotspots();},
+  docente(){const d=document.getElementById('efDocenteDialog');if(d)d.showModal();}
 };
 })();
 </script>
