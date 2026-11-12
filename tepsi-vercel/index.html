@@ -436,6 +436,54 @@ body:not(.lado) #rnPanel.min,#rnPanel.min{height:auto}
 }
 /* ---------- EEDP 0 a 2 años ---------- */
 /* EEDP: módulo removido, se reconstruirá */
+
+/* ---------- Examen Físico del RN ---------- */
+#appExfis .exfis-panel{top:64px}
+#appExfis .hud-tl,#appExfis .hud-tr{top:12px}
+.exfis-vistas .ibtn{font-size:13px}
+.exfis-vistas [data-efv][aria-pressed="true"]{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+#appExfis .exfis-pista{top:62px}
+.exfis-zonas{display:flex;flex-direction:column;gap:6px}
+.exfis-zona{font:inherit;text-align:left;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--panel);cursor:pointer;display:flex;align-items:center;gap:10px;min-height:44px;transition:border-color .15s,box-shadow .15s}
+.exfis-zona:hover{background:var(--brand-soft);border-color:var(--cyan)}
+.exfis-zona.activa{border-color:var(--cyan);box-shadow:0 0 0 1px var(--cyan);background:var(--brand-soft)}
+.exfis-zona.vista{border-left:3px solid var(--ok)}
+.exfis-zona .ez-ico{font-size:20px;flex:none;width:28px;text-align:center}
+.exfis-zona .ez-nom{flex:1;font-weight:600;font-size:14px;color:var(--ink)}
+.exfis-zona .ez-badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--line);color:var(--muted)}
+.exfis-zona.vista .ez-badge{background:var(--ok-soft);color:var(--ok)}
+.exfis-detalle{display:grid;gap:12px;animation:efFadeIn .25s ease}
+@keyframes efFadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.exfis-detalle h3{font-family:var(--display);font-size:17px;margin:0;color:var(--brand);display:flex;align-items:center;gap:8px}
+.exfis-detalle h3 .ez-ico{font-size:22px}
+.exfis-back{font:inherit;font-size:13px;font-weight:600;color:var(--cyan);background:none;border:0;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px}
+.exfis-back:hover{text-decoration:underline}
+.exfis-sub{margin:0}
+.exfis-sub h4{font-family:var(--display);font-size:14px;color:var(--ink);margin:0 0 4px;border-bottom:1px solid var(--line);padding-bottom:4px}
+.exfis-sub ul{margin:4px 0 0;padding-left:18px;font-size:13px;line-height:1.55;color:var(--ink)}
+.exfis-sub li{margin-bottom:3px}
+.exfis-alerta{background:var(--hi-soft);border-radius:8px;padding:8px 10px;font-size:13px}
+.exfis-alerta b{color:var(--hi);font-weight:700}
+.exfis-alerta ul{margin:4px 0 0;padding-left:16px}
+.exfis-normal{background:var(--ok-soft);border-radius:8px;padding:8px 10px;font-size:13px}
+.exfis-normal b{color:var(--ok);font-weight:700}
+.exfis-ref{font-size:11px;color:var(--muted);margin:0;font-style:italic}
+.exfis-progreso{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--muted)}
+.exfis-progreso .barra-bg{flex:1;height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.exfis-progreso .barra-fg{height:100%;background:var(--cyan);border-radius:3px;transition:width .3s ease}
+.exfis-hotspot{position:absolute;z-index:3;width:32px;height:32px;border-radius:50%;border:2px solid var(--cyan);background:rgba(0,176,225,.18);cursor:pointer;transform:translate(-50%,-50%);pointer-events:auto;transition:transform .15s,box-shadow .15s}
+.exfis-hotspot:hover,.exfis-hotspot.activo{transform:translate(-50%,-50%) scale(1.25);box-shadow:0 0 12px rgba(0,176,225,.5);background:rgba(0,176,225,.35)}
+.exfis-hotspot .ef-tip{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--bar);color:#fff;font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s}
+.exfis-hotspot:hover .ef-tip{opacity:1}
+body:not(.lado) #exfisPanel.min,#exfisPanel.min{height:auto}
+@media (min-width:761px){#exfisPanel.min{bottom:auto}}
+#exfisPanel.min>:not(.panel-cab){display:none}
+@media (max-width:760px){#appExfis .exfis-panel{top:auto}.exfis-vistas .ibtn{padding:0 10px}}
+@media (max-width:560px){
+  .exfis-vistas{gap:5px}
+  .exfis-vistas .ibtn{padding:0 8px;font-size:12px;min-height:38px}
+  #appExfis .hud-tl{max-width:calc(100% - 200px)}
+}
 </style>
 <header class="topbar"><div class="in">
   <div class="tit"><div class="sub" id="topSub">Simulación virtual</div><h1 id="topTit">Simulación pediátrica 3D</h1></div>
@@ -449,6 +497,16 @@ body:not(.lado) #rnPanel.min,#rnPanel.min{height:auto}
   </div>
   <div class="regla-zona" id="reglaZona">
     <div class="regla" id="regla" aria-hidden="true"></div>
+    <article class="nivel" data-cm="40" data-de="36" data-a="44" aria-labelledby="nvExfisT">
+      <span class="marca">36–44 cm</span>
+      <div class="nivel-txt">
+        <h3 id="nvExfisT">Recién nacido</h3>
+        <p class="que">Examen físico segmentario</p>
+        <p>Explora al recién nacido de cabeza a pies: haz clic en cada zona corporal para revisar hallazgos normales y signos de alerta.</p>
+        <p class="quien">Examen céfalo-caudal completo con referencias MINSAL</p>
+        <button class="btn btn-primario" data-ir="exfis">Abrir examen físico</button>
+      </div>
+    </article>
     <article class="nivel" data-cm="50" data-de="46" data-a="54" aria-labelledby="nvRnT">
       <span class="marca">46–54 cm</span>
       <div class="nivel-txt">
@@ -641,6 +699,30 @@ body:not(.lado) #rnPanel.min,#rnPanel.min{height:auto}
 
 <div id="appEedp" hidden style="flex:1;display:flex;align-items:center;justify-content:center;padding:40px"><p style="font-size:18px;color:var(--muted);text-align:center">Módulo EEDP en reconstrucción</p></div>
 
+<div class="app" id="appExfis" hidden>
+  <div class="visor" id="efVisor">
+    <div class="cargando" id="efCargando">Cargando recién nacido 3D…</div>
+  </div>
+  <div class="hud hud-tl">
+    <div class="chip estado" id="efEstado"><i></i><span id="efEstadoTxt">Examen físico segmentario</span></div>
+  </div>
+  <div class="hud hud-tr exfis-vistas" role="group" aria-label="Vista de cámara">
+    <button class="ibtn flota" data-efv="frontal" aria-pressed="true">Frontal</button>
+    <button class="ibtn flota" data-efv="dorsal" aria-pressed="false">Dorsal</button>
+    <button class="ibtn flota" data-efv="lado" aria-pressed="false">Lateral</button>
+  </div>
+  <div class="chip pista exfis-pista" id="efPista">Haz clic en una zona del cuerpo o elige del listado</div>
+  <div id="efHotspots" style="position:absolute;inset:0;z-index:2;pointer-events:none"></div>
+
+  <section class="panel p-lado flota plegable exfis-panel" id="exfisPanel" aria-label="Examen físico del recién nacido">
+    <div class="panel-cab"><h2>Examen físico del RN</h2><button class="minbtn" type="button" data-efmin aria-expanded="true" aria-label="Minimizar panel" title="Minimizar panel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button></div>
+    <div class="panel-cuerpo">
+      <div class="exfis-progreso" id="efProgreso"><span id="efProgTxt">0 / 12</span><div class="barra-bg"><div class="barra-fg" id="efProgBar" style="width:0%"></div></div></div>
+      <div id="efContenido"></div>
+      <p class="nota" style="font-size:11px;margin-top:8px">Contenido basado en Guía Perinatal MINSAL 2015, Manual de Neonatología (Tapia) y Norma Técnica RN MINSAL. Datos ficticios, uso docente.</p>
+    </div>
+  </section>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
@@ -2657,14 +2739,15 @@ window.RN={iniciar,talla:()=>iniciado&&talla(),_dbg:()=>({cam,ctl,inf,H,THREE,gu
 /* ---------- Portada y cambio de módulo ---------- */
 (()=>{
 const $=s=>document.querySelector(s);
-const TIT={inicio:['Simulación virtual','Simulación pediátrica 3D'],tepsi:['Simulación virtual · Desarrollo infantil','Evaluación Psicomotora TEPSI'],rn:['Simulación virtual · Neonatología','Reflejos del recién nacido'],eedp:['Simulación virtual · Desarrollo infantil','EEDP 0 a 2 años']};
+const TIT={inicio:['Simulación virtual','Simulación pediátrica 3D'],tepsi:['Simulación virtual · Desarrollo infantil','Evaluación Psicomotora TEPSI'],rn:['Simulación virtual · Neonatología','Reflejos del recién nacido'],eedp:['Simulación virtual · Desarrollo infantil','EEDP 0 a 2 años'],exfis:['Simulación virtual · Neonatología','Examen físico del recién nacido']};
 function ir(m,desdeHash){
   if(!TIT[m])m='inicio';
   if(document.body.dataset.modulo==='tepsi'&&m!=='tepsi'&&window.speechSynthesis)speechSynthesis.cancel();
   document.body.dataset.modulo=m;
-  $('#portada').hidden=m!=='inicio';$('#appTepsi').hidden=m!=='tepsi';$('#appRN').hidden=m!=='rn';$('#appEedp').hidden=m!=='eedp';
+  $('#portada').hidden=m!=='inicio';$('#appTepsi').hidden=m!=='tepsi';$('#appRN').hidden=m!=='rn';$('#appEedp').hidden=m!=='eedp';$('#appExfis').hidden=m!=='exfis';
   $('#topSub').textContent=TIT[m][0];$('#topTit').textContent=TIT[m][1];$('#inicioBtn').hidden=m==='inicio';
   if(m==='rn'&&window.RN)RN.iniciar();
+  if(m==='exfis'&&window.EXFIS)EXFIS.iniciar();
   if(m==='inicio')requestAnimationFrame(regla);
   if(!desdeHash){try{history.replaceState(null,'',m==='inicio'?location.pathname+location.search:'#'+m);}catch(e){}}
   if(!desdeHash&&m==='inicio'){const f=$('#portTit');f.tabIndex=-1;f.focus({preventScroll:true});}
@@ -2778,6 +2861,271 @@ $('#docTit').tabIndex=-1;
 
 /* EEDP interfaz removida */
 
+</script>
+
+<script>
+/* ---------- Examen Físico del Recién Nacido ---------- */
+(()=>{
+const ZONAS=[
+{id:'cabeza',nombre:'Cabeza y cráneo',ico:'🧒',huesos:['head'],
+ normal:'<b>Hallazgos normales</b><ul><li>Perímetro craneano: 33–37 cm (verificar con curvas OMS)</li><li>Fontanela anterior (bregmática): 1–4 cm, blanda, levemente depresible, normotensa</li><li>Fontanela posterior (lambdoidea): &lt; 1 cm, puede estar cerrada al nacer</li><li>Suturas palpables, ligeramente separadas; cabalgamiento leve es normal tras parto vaginal</li><li>Caput succedaneum: edema del cuero cabelludo que cruza suturas; se reabsorbe en 24–48 h</li><li>Moldeamiento craneal por parto vaginal; ausente en cesárea</li></ul>',
+ alerta:'<b>Signos de alerta</b><ul><li>Fontanela anterior abombada y tensa → hipertensión endocraneana</li><li>Fontanela muy amplia → hipotiroidismo, hidrocefalia, retraso de osificación</li><li>Cefalohematoma: colección subperióstica que NO cruza suturas; puede calcificarse</li><li>Craneosinostosis: sutura fusionada prematuramente, con cresta palpable</li><li>Perímetro craneano &lt; p3 (microcefalia) o &gt; p97 (macrocefalia)</li></ul>',
+ ref:'Guía Perinatal MINSAL 2015, cap. Atención Inmediata; Manual Neonatología Tapia, cap. Examen Físico'},
+
+{id:'ojos',nombre:'Ojos',ico:'👁️',huesos:['head'],
+ normal:'<b>Hallazgos normales</b><ul><li>Párpados ligeramente edematosos las primeras horas</li><li>Iris grisáceo al nacer; color definitivo se establece hacia los 6–12 meses</li><li>Pupilas reactivas a la luz, simétricas</li><li>Reflejo rojo bilateral presente (descarta leucocoria)</li><li>Hemorragia subconjuntival por esfuerzo del parto: se reabsorbe espontáneamente</li></ul>',
+ alerta:'<b>Signos de alerta</b><ul><li>Leucocoria (reflejo blanco) → retinoblastoma, catarata congénita</li><li>Asimetría pupilar → anisocoria patológica</li><li>Opacidad corneal → glaucoma congénito</li><li>Secreción purulenta → conjuntivitis neonatal (descartar gonococo, clamidia)</li><li>Epicanto marcado, hendiduras palpebrales oblicuas → evaluar síndrome genético</li></ul>',
+ ref:'Norma Técnica RN MINSAL; Guía Perinatal 2015'},
+
+{id:'oidos',nombre:'Oídos',ico:'👂',huesos:['head'],
+ normal:'<b>Hallazgos normales</b><ul><li>Pabellón auricular bien formado, con cartílago firme en RNT</li><li>Implantación: borde superior del pabellón a la altura de la línea ocular</li><li>Membrana timpánica visible en otoscopia (no siempre se realiza en atención inmediata)</li></ul>',
+ alerta:'<b>Signos de alerta</b><ul><li>Implantación baja (por debajo de la línea ocular) → asociación con malformaciones renales y síndromes genéticos (p. ej. trisomía 21, Turner)</li><li>Apéndices o fositas preauriculares → evaluación renal complementaria</li><li>Microtia o anotia → evaluación auditiva y genética</li></ul>',
+ ref:'Manual Neonatología Tapia; Norma Técnica RN MINSAL'},
+
+{id:'boca',nombre:'Boca y paladar',ico:'👄',huesos:['head'],
+ normal:'<b>Hallazgos normales</b><ul><li>Labios simétricos y rosados</li><li>Paladar duro íntegro (palpar con dedo enguantado)</li><li>Úvula en línea media</li><li>Perlas de Epstein en paladar: quistes blancos de inclusión, benignos, desaparecen solos</li><li>Nódulos de Bohn en encías: quistes de queratina, normales</li><li>Millium sebáceo en nariz y mentón: normal</li><li>Reflejo de succión presente y vigoroso</li><li>Frenillo lingual que permite protrusión de la lengua más allá del reborde alveolar</li></ul>',
+ alerta:'<b>Signos de alerta</b><ul><li>Fisura labiopalatina → evaluación multidisciplinaria</li><li>Dientes supernumerarios (dientes natales) → riesgo de aspiración, derivar</li><li>Micrognatia marcada → puede asociarse a secuencia de Pierre Robin, riesgo de obstrucción de vía aérea</li><li>Anquiloglosia severa (frenillo corto) → puede interferir con lactancia materna</li><li>Macroglosia → evaluar hipotiroidismo, Beckwith-Wiedemann</li></ul>',
+ ref:'Guía Perinatal MINSAL 2015; Manual Neonatología Tapia'},
+
+{id:'cuello',nombre:'Cuello',ico:'🔵',huesos:['neck'],
+ normal:'<b>Hallazgos normales</b><ul><li>Cuello corto y simétrico en el RN, con movilidad completa</li><li>Sin masas palpables</li><li>Clavículas lisas y uniformes (palpar toda su extensión)</li></ul>',
+ alerta:'<b>Signos de alerta</b><ul><li>Hematoma del esternocleidomastoideo (tortícolis congénita) → masa firme en el músculo, con inclinación lateral de la cabeza</li><li>Quiste tirogloso → masa en línea media que asciende al deglutir</li><li>Higroma quístico → masa blanda lateral, translúcida</li><li>Fractura de clavícula → crepitación, disminución de movimiento del brazo ipsilateral, reflejo de Moro asimétrico</li><li>Bocio → aumento de volumen tiroideo; puede asociarse a hipotiroidismo</li></ul>',
+ ref:'Guía Perinatal MINSAL 2015; Norma Técnica RN MINSAL'},
+
+{id:'torax',nombre:'Tórax y cardiopulmonar',ico:'🫁',huesos:['spine','spine001','spine002'],
+ normal:'<b>Hallazgos normales</b><ul><li>Tórax simétrico, con respiración predominantemente abdominal</li><li>Frecuencia respiratoria: 40–60 rpm (primeras horas), luego 30–60 rpm</li><li>Murmullo pulmonar presente bilateral; pueden oírse ruidos húmedos en las primeras horas (líquido pulmonar en reabsorción)</li><li>Frecuencia cardíaca: 120–160 lpm en reposo</li><li>Ápex cardíaco en 3°–4° espacio intercostal izquierdo, línea medioclavicular</li><li>Nódulo mamario palpable por estímulo hormonal materno (ingurgitación mamaria fisiológica)</li><li>Soplo eyectivo transitorio en las primeras 24 h puede ser normal</li></ul>',
+ alerta:'<b>Signos de alerta</b><ul><li>Dificultad respiratoria: quejido, aleteo nasal, tiraje intercostal/subcostal, retracción xifoidea</li><li>FR &gt; 60 rpm persistente → taquipnea transitoria, SDR, neumonía</li><li>FC &lt; 100 o &gt; 200 lpm → bradicardia o taquicardia patológica</li><li>Soplo que persiste &gt; 24 h o es holosistólico → cardiopatía congénita</li><li>Asimetría de murmullo pulmonar → neumotórax, hernia diafragmática</li><li>Abdomen excavado + dificultad respiratoria → sospechar hernia diafragmática</li></ul>',
+ ref:'Guía Perinatal MINSAL 2015, cap. Atención Inmediata; Manual Neonatología Tapia'},
+
+{id:'abdomen',nombre:'Abdomen y cordón umbilical',ico:'🔘',huesos:['spine'],
+ normal:'<b>Hallazgos normales</b><ul><li>Abdomen blando, depresible, sin distensión</li><li>Ligeramente excavado en las primeras horas; se distiende progresivamente con el paso de aire intestinal</li><li>Hígado palpable 1–2 cm bajo el reborde costal derecho</li><li>Bazo no palpable habitualmente</li><li>Cordón umbilical con tres vasos (dos arterias y una vena), gelatinoso</li><li>Cordón se momifica y cae entre los 7 y 10 días</li><li>Hernia umbilical pequeña: frecuente, suele resolverse espontáneamente antes de los 4 años</li></ul>',
+ alerta:'<b>Signos de alerta</b><ul><li>Distensión abdominal → obstrucción intestinal, íleo, enterocolitis necrotizante, sepsis</li><li>Abdomen excavado con dificultad respiratoria → hernia diafragmática</li><li>Arteria umbilical única → mayor riesgo de malformaciones renales y cardíacas</li><li>Onfalitis: eritema, secreción purulenta o maloliente periumbilical → infección, requiere tratamiento urgente</li><li>Hepatoesplenomegalia → infección congénita (TORCH), enfermedad hemolítica</li><li>Masa abdominal palpable → neuroblastoma, hidronefrosis, riñón poliquístico</li></ul>',
+ ref:'Guía Perinatal MINSAL 2015; Manual Neonatología Tapia; Norma Técnica RN MINSAL'},
+
+{id:'genitales',nombre:'Genitales',ico:'🚼',huesos:['spine'],
+ normal:'<b>Hallazgos normales</b><ul><li><b>Masculino:</b> Testículos descendidos en escroto (más pigmentado que el resto de la piel); prepucio adherido al glande (fimosis fisiológica); meato urinario en posición central en el glande</li><li><b>Femenino:</b> Labios mayores cubren a los menores y al clítoris en RNT; secreción blanquecina (leucorrea fisiológica) por estímulo hormonal materno; puede haber pseudomenstruación (sangrado vaginal leve)</li><li>Primera micción esperable dentro de las primeras 24 h</li></ul>',
+ alerta:'<b>Signos de alerta</b><ul><li>Criptorquidia: testículo no palpable en escroto → derivar para seguimiento</li><li>Hipospadias: meato urinario en posición ventral → NO circuncidar, derivar a urología</li><li>Epispadias: meato en posición dorsal</li><li>Genitales ambiguos → estudio urgente de sexo genético y función suprarrenal</li><li>Hidrocele: acumulación de líquido en bolsa escrotal, translúcida a la iluminación; generalmente benigno</li><li>Hernia inguinal: masa que aumenta con el llanto → evaluación quirúrgica</li><li>Hidrocolpos en RN femenino → acumulación de secreciones por imperforación del himen</li></ul>',
+ ref:'Guía Perinatal MINSAL 2015; Norma Técnica RN MINSAL'},
+
+{id:'ano',nombre:'Ano y eliminación',ico:'⭕',huesos:['spine'],
+ normal:'<b>Hallazgos normales</b><ul><li>Ano permeable, en posición central, con tono del esfínter adecuado</li><li>Primera deposición de meconio dentro de las primeras 24–48 h</li><li>Meconio: de color verde oscuro–negro, espeso y pegajoso</li></ul>',
+ alerta:'<b>Signos de alerta</b><ul><li>Ano imperforado → ausencia de orificio anal; requiere evaluación quirúrgica urgente</li><li>Fístula perianal → comunicación anómala</li><li>Ausencia de meconio en &gt; 48 h → sospechar obstrucción intestinal, enfermedad de Hirschsprung, fibrosis quística</li><li>Ano anterior → evaluar posición y permeabilidad</li></ul>',
+ ref:'Manual Neonatología Tapia; Norma Técnica RN MINSAL'},
+
+{id:'extremidades',nombre:'Extremidades y caderas',ico:'🦶',huesos:['upperarm_l','upperarm_r','lowerarm_l','lowerarm_r','hand_l','hand_r','thigh_l','thigh_r','shin_l','shin_r','foot_l','foot_r'],
+ normal:'<b>Hallazgos normales</b><ul><li>Extremidades simétricas en forma, longitud y movilidad</li><li>Postura en flexión generalizada (mayor flexión a mayor EG)</li><li>Manos empuñadas con pulgar incluido; se abre con estímulo</li><li>Pliegues palmares y plantares normales</li><li>Caderas: abducción simétrica, sin limitación; maniobra de Ortolani-Barlow negativa</li><li>Pulsos femorales palpables y simétricos</li></ul>',
+ alerta:'<b>Signos de alerta</b><ul><li>Ortolani-Barlow positiva → displasia luxante de cadera; derivar a ecografía y ortopedia</li><li>Asimetría de pliegues glúteos o inguinales → sospechar displasia</li><li>Pie bot (equino-varo) → derivar a ortopedia</li><li>Polidactilia, sindactilia → evaluación genética</li><li>Parálisis braquial (Erb-Duchenne) → brazo en extensión y rotación interna, sin movimiento espontáneo; asociada a macrosomía y distocia de hombros</li><li>Ausencia de pulsos femorales → sospechar coartación aórtica</li></ul>',
+ ref:'Guía Perinatal MINSAL 2015; Manual Neonatología Tapia'},
+
+{id:'piel',nombre:'Piel y tegumentos',ico:'🩹',huesos:[],
+ normal:'<b>Hallazgos normales</b><ul><li>Color rosado generalizado; acrocianosis en manos y pies es normal las primeras 24–48 h</li><li>Vérnix caseoso: capa protectora blanquecina, más abundante en pretérmino</li><li>Lanugo: vello fino, más abundante en pretérmino; desaparece en semanas</li><li>Mancha mongólica (melanocitosis dérmica): área azul-grisácea en región sacra/glútea; benigna</li><li>Eritema tóxico neonatal: pápulas y pústulas sobre base eritematosa; benigno, desaparece en 1 semana</li><li>Millium sebáceo: puntos blancos en nariz y cara; normal</li><li>Hemangioma plano (nevo simple o "mancha salmón"): en nuca, párpados o frente; la mayoría desaparece</li><li>Descamación fisiológica leve, más marcada en postérmino</li></ul>',
+ alerta:'<b>Signos de alerta</b><ul><li>Ictericia en &lt; 24 h de vida → incompatibilidad ABO/Rh, infección; requiere estudio urgente</li><li>Cianosis central → cardiopatía congénita, patología respiratoria</li><li>Palidez → anemia, shock</li><li>Petequias o equimosis generalizadas → trombocitopenia, coagulopatía, infección</li><li>Piel colodión, ictiosis → dermatosis congénitas</li><li>Hemangioma extenso (cara, línea media) → riesgo de complicaciones; derivar</li></ul>',
+ ref:'Guía Perinatal MINSAL 2015; Norma Técnica RN MINSAL'},
+
+{id:'columna',nombre:'Columna y espalda',ico:'🦴',huesos:['spine','spine001','spine002'],
+ normal:'<b>Hallazgos normales</b><ul><li>Columna recta, sin masas ni defectos palpables</li><li>Piel de la línea media intacta en toda la extensión</li><li>Región sacrococcígea sin fositas profundas ni apéndices</li></ul>',
+ alerta:'<b>Signos de alerta</b><ul><li>Espina bífida oculta: mechón de pelo, fosita sacra profunda (> 5 mm o > 2.5 cm del ano), hemangioma o apéndice en línea media → ecografía medular</li><li>Mielomeningocele: defecto abierto con protrusión de meninges/médula → neurocirugía urgente</li><li>Seno dérmico → riesgo de conexión con canal medular; derivar</li><li>Masa en línea media dorsal → teratoma sacrococcígeo; evaluación quirúrgica</li></ul>',
+ ref:'Manual Neonatología Tapia; Norma Técnica RN MINSAL'}
+];
+
+/* ---------- Datos del módulo ---------- */
+let efScene,efCamera,efRenderer,efMesh,efCanvas,efAnimId,efIniciado=false;
+const vistas=[];
+const zonasVistas=new Set();
+let zonaActiva=null;
+
+/* ---------- Posiciones de hotspots en pantalla (normalizadas respecto al modelo) ---------- */
+const HOTSPOT_3D={
+  cabeza:{y:1.58,z:0},ojos:{y:1.52,z:.05},oidos:{y:1.50,z:0},boca:{y:1.46,z:.06},
+  cuello:{y:1.38,z:0},torax:{y:1.22,z:0},abdomen:{y:1.05,z:.04},
+  genitales:{y:.92,z:.03},ano:{y:.90,z:-.04},
+  extremidades:{y:.70,z:.08},piel:{y:1.30,z:.12},columna:{y:1.15,z:-.08}
+};
+
+function renderListaZonas(){
+  const c=document.getElementById('efContenido');
+  let h='<div class="exfis-zonas">';
+  ZONAS.forEach(z=>{
+    const v=zonasVistas.has(z.id);
+    h+=`<button class="exfis-zona${v?' vista':''}" data-zona="${z.id}"><span class="ez-ico">${z.ico}</span><span class="ez-nom">${z.nombre}</span><span class="ez-badge">${v?'✓ Revisado':'Pendiente'}</span></button>`;
+  });
+  h+='</div>';
+  c.innerHTML=h;
+  c.querySelectorAll('[data-zona]').forEach(b=>b.onclick=()=>mostrarZona(b.dataset.zona));
+  actualizarProgreso();
+}
+
+function mostrarZona(id){
+  const z=ZONAS.find(x=>x.id===id);if(!z)return;
+  zonaActiva=id;
+  zonasVistas.add(id);
+  const c=document.getElementById('efContenido');
+  c.innerHTML=`<div class="exfis-detalle">
+    <button class="exfis-back" onclick="EXFIS.volver()">← Volver al listado</button>
+    <h3><span class="ez-ico">${z.ico}</span> ${z.nombre}</h3>
+    <div class="exfis-normal">${z.normal}</div>
+    <div class="exfis-alerta">${z.alerta}</div>
+    <p class="exfis-ref">📚 ${z.ref}</p>
+  </div>`;
+  actualizarProgreso();
+  actualizarHotspots();
+  /* mover cámara hacia la zona */
+  enfocarZona(id);
+}
+
+function actualizarProgreso(){
+  const n=zonasVistas.size,t=ZONAS.length;
+  document.getElementById('efProgTxt').textContent=`${n} / ${t}`;
+  document.getElementById('efProgBar').style.width=`${Math.round(n/t*100)}%`;
+}
+
+/* ---------- Three.js ---------- */
+function iniciar(){
+  if(efIniciado){efRenderer&&efRenderer.setAnimationLoop(animar);return;}
+  efIniciado=true;
+  efCanvas=document.createElement('canvas');
+  const visor=document.getElementById('efVisor');
+  visor.querySelector('.cargando').remove();
+  visor.appendChild(efCanvas);
+  efCanvas.style.cssText='display:block;width:100%;height:100%;touch-action:none';
+
+  efRenderer=new THREE.WebGLRenderer({canvas:efCanvas,antialias:true,alpha:true});
+  efRenderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  efRenderer.outputEncoding=THREE.sRGBEncoding;
+
+  efScene=new THREE.Scene();
+  efScene.background=new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue('--escena').trim()||'#dce9f3');
+
+  efCamera=new THREE.PerspectiveCamera(32,1,.1,50);
+  efCamera.position.set(0,1.2,3.5);
+
+  const amb=new THREE.AmbientLight(0xffffff,.65);
+  const dir=new THREE.DirectionalLight(0xffffff,.7);dir.position.set(2,3,4);
+  const dir2=new THREE.DirectionalLight(0xffffff,.3);dir2.position.set(-2,2,-1);
+  efScene.add(amb,dir,dir2);
+
+  /* cargar modelo */
+  const loader=new THREE.GLTFLoader();
+  if(THREE.MeshoptDecoder)loader.setMeshoptDecoder(THREE.MeshoptDecoder);
+  const glbBin=Uint8Array.from(atob(window.RN_GLB),c=>c.charCodeAt(0));
+  loader.parse(glbBin.buffer,'',gltf=>{
+    const m=gltf.scene;
+    m.traverse(c=>{if(c.isMesh){
+      c.material=new THREE.MeshStandardMaterial({color:0xf5d0b5,roughness:.55,metalness:.05});
+      if(c.isSkinnedMesh)efMesh=c;
+    }});
+    /* centrar y escalar */
+    const box=new THREE.Box3().setFromObject(m);
+    const center=box.getCenter(new THREE.Vector3());
+    const size=box.getSize(new THREE.Vector3());
+    const maxDim=Math.max(size.x,size.y,size.z);
+    const scale=2.5/maxDim;
+    m.scale.setScalar(scale);
+    m.position.sub(center.multiplyScalar(scale));
+    m.position.y-=.1;
+    efScene.add(m);
+
+    /* OrbitControls */
+    if(THREE.OrbitControls){
+      const ctrl=new THREE.OrbitControls(efCamera,efCanvas);
+      ctrl.target.set(0,1.1,0);
+      ctrl.enableDamping=true;ctrl.dampingFactor=.08;
+      ctrl.minDistance=1.5;ctrl.maxDistance=6;
+      ctrl.maxPolarAngle=Math.PI*.85;
+      ctrl.update();
+      window._efCtrl=ctrl;
+    }
+    colocarHotspots();
+    efRenderer.setAnimationLoop(animar);
+  },err=>console.error('ExFis GLB error',err));
+
+  /* vistas */
+  document.querySelectorAll('[data-efv]').forEach(b=>{
+    b.onclick=()=>{
+      document.querySelectorAll('[data-efv]').forEach(x=>x.setAttribute('aria-pressed','false'));
+      b.setAttribute('aria-pressed','true');
+      cambiarVista(b.dataset.efv);
+    };
+  });
+
+  /* minimizar panel */
+  const minBtn=document.querySelector('[data-efmin]');
+  if(minBtn)minBtn.onclick=()=>{
+    const p=document.getElementById('exfisPanel');
+    p.classList.toggle('min');
+    minBtn.setAttribute('aria-expanded',!p.classList.contains('min'));
+  };
+
+  renderListaZonas();
+  resize();
+  window.addEventListener('resize',resize);
+}
+
+function resize(){
+  if(!efRenderer)return;
+  const v=document.getElementById('efVisor');if(!v)return;
+  const w=v.clientWidth,h=v.clientHeight;
+  efRenderer.setSize(w,h,false);
+  efCamera.aspect=w/h;efCamera.updateProjectionMatrix();
+  colocarHotspots();
+}
+
+function animar(){
+  if(window._efCtrl)window._efCtrl.update();
+  efRenderer.render(efScene,efCamera);
+  colocarHotspots();
+}
+
+function cambiarVista(v){
+  if(!efCamera||!window._efCtrl)return;
+  const ctrl=window._efCtrl;
+  const t={frontal:{x:0,y:1.2,z:3.5},dorsal:{x:0,y:1.2,z:-3.5},lado:{x:3.2,y:1.2,z:.5}};
+  const pos=t[v]||t.frontal;
+  efCamera.position.set(pos.x,pos.y,pos.z);
+  ctrl.target.set(0,1.1,0);
+  ctrl.update();
+}
+
+function enfocarZona(id){
+  if(!efCamera||!window._efCtrl)return;
+  const h=HOTSPOT_3D[id];if(!h)return;
+  const ctrl=window._efCtrl;
+  ctrl.target.set(0,h.y,0);
+  const dist=id==='piel'?3.5:2.2;
+  efCamera.position.set(h.z>0?dist*.3:h.z<0?-dist*.3:0,h.y,dist);
+  ctrl.update();
+  /* resetear vista buttons */
+  document.querySelectorAll('[data-efv]').forEach(x=>x.setAttribute('aria-pressed','false'));
+}
+
+/* ---------- Hotspots 2D superpuestos ---------- */
+function colocarHotspots(){
+  if(!efCamera||!efRenderer)return;
+  const cont=document.getElementById('efHotspots');if(!cont)return;
+  const w=efRenderer.domElement.clientWidth,h=efRenderer.domElement.clientHeight;
+  let html='';
+  ZONAS.forEach(z=>{
+    const hp=HOTSPOT_3D[z.id];if(!hp)return;
+    const v=new THREE.Vector3(0,hp.y,hp.z);
+    v.project(efCamera);
+    const x=(v.x*.5+.5)*w;
+    const y=(-.5*v.y+.5)*h;
+    if(v.z>1)return;/* detrás de la cámara */
+    const act=zonaActiva===z.id?' activo':'';
+    html+=`<div class="exfis-hotspot${act}" style="left:${x}px;top:${y}px;pointer-events:auto" data-hszona="${z.id}"><span class="ef-tip">${z.nombre}</span></div>`;
+  });
+  cont.innerHTML=html;
+  cont.querySelectorAll('[data-hszona]').forEach(el=>el.onclick=()=>mostrarZona(el.dataset.hszona));
+}
+
+function actualizarHotspots(){colocarHotspots();}
+
+/* ---------- API global ---------- */
+window.EXFIS={
+  iniciar,
+  volver(){zonaActiva=null;renderListaZonas();actualizarHotspots();}
+};
+})();
 </script>
 
 </body></html>
