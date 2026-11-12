@@ -2736,6 +2736,8 @@ window.RN_DOC={
 window.RN={iniciar,talla:()=>iniciado&&talla(),_dbg:()=>({cam,ctl,inf,H,THREE,guante,scene})};
 })();
 
+</script>
+<script>
 /* ---------- Portada y cambio de módulo ---------- */
 (()=>{
 const $=s=>document.querySelector(s);
@@ -2746,8 +2748,7 @@ function ir(m,desdeHash){
   document.body.dataset.modulo=m;
   $('#portada').hidden=m!=='inicio';$('#appTepsi').hidden=m!=='tepsi';$('#appRN').hidden=m!=='rn';$('#appEedp').hidden=m!=='eedp';$('#appExfis').hidden=m!=='exfis';
   $('#topSub').textContent=TIT[m][0];$('#topTit').textContent=TIT[m][1];$('#inicioBtn').hidden=m==='inicio';
-  if(m==='rn'&&window.RN)RN.iniciar();
-  if(m==='exfis'&&window.EXFIS)EXFIS.iniciar();
+  try{if(m==='rn'&&window.RN)RN.iniciar();if(m==='exfis'&&window.EXFIS)EXFIS.iniciar();}catch(e){console.error(e);}
   if(m==='inicio')requestAnimationFrame(regla);
   if(!desdeHash){try{history.replaceState(null,'',m==='inicio'?location.pathname+location.search:'#'+m);}catch(e){}}
   if(!desdeHash&&m==='inicio'){const f=$('#portTit');f.tabIndex=-1;f.focus({preventScroll:true});}
@@ -2775,6 +2776,8 @@ if(document.fonts)document.fonts.ready.then(regla);
 const h0=location.hash.slice(1);ir(TIT[h0]?h0:'inicio',true);
 })();
 
+</script>
+<script>
 /* ---------- Sección docente: editar los datos de los casos (guardados para todos los estudiantes) ---------- */
 (()=>{
 const $=s=>document.querySelector(s);
