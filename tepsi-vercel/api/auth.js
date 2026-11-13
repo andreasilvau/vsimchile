@@ -34,6 +34,25 @@ export default async function handler(req, res) {
     }
 
     const email = texto(b.email, 200).toLowerCase(), password = String(b.password || '');
+    const correoOk = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email), claveOk = password.length >= 8 && password.length <= 128;
+
+    // Recuperación de contraseña: Neon Auth envía un correo con un enlace que vuelve a esta página con un token.
+    if (b.accion === 'recuperar') {
+      if (!correoOk) return res.status(400).json({ error: 'Escribe un correo válido.' });
+      const host = req.headers['x-forwarded-host'] || req.headers.host || '';
+      const origen = (/^(localhost|127\.0\.0\.1)(:|$)/.test(host) ? 'http://' : 'https://') + host;
+      try { await llamarAuth('/request-password-reset', { cuerpo: { email, redirectTo: origen + '/?recuperar=1' } }); } catch (e) { console.error(e); }
+      // Siempre la misma respuesta, exista o no la cuenta.
+      return res.status(200).json({ ok: true });
+    }
+    if (b.accion === 'nueva_clave') {
+      const token = String(b.token || '');
+      if (!/^[A-Za-z0-9_-]{10,200}$/.test(token)) return res.status(400).json({ error: 'El enlace no es válido. Pide uno nuevo.' });
+      if (!claveOk) return res.status(400).json({ error: 'La contraseña debe tener al menos 8 caracteres.' });
+      const r = await llamarAuth('/reset-password', { cuerpo: { newPassword: password, token } });
+      if (!r.ok) return res.status(400).json({ error: 'El enlace venció o ya fue usado. Pide uno nuevo.' });
+      return res.status(200).json({ ok: true });
+    }
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) || password.length < 8 || password.length > 128)
       return res.status(400).json({ error: 'Revisa el correo y la contraseña (mínimo 8 caracteres).' });
 
