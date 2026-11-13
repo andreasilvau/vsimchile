@@ -469,14 +469,18 @@ function montar() {
 }
 
 // Puntos de extensión para js/vsim-aula.js (secciones, asignaciones y resultados).
+// El modo docente del examen físico (administrar imágenes por zona) sigue la sesión del panel.
+function sincronizarExfis() { if (window.EXFIS && EXFIS.modoDocente) EXFIS.modoDocente(esDoc()); }
 const X = { E, MODS, $, esc, api, esDoc, porId, baseDe, variantes, nombreBase: (m, k) => nombreBase(m, k), enPantalla, irCaso, irTab: t => irTab(t), abrirPanel: () => abrirPanel(), tabs: {}, alDecorar: [], alMontar: [], alSesion: [] };
 window.VSIM = { variante: mod => E.activa[mod] || null, _: X };
+X.alSesion.push(sincronizarExfis);
 (async () => {
   if (!window.TEPSI_DOC && !window.RN_DOC) return;
   let j;
   try { j = await api('/api/auth'); } catch (e) { return; } // sin servidor configurado: el simulador sigue igual
   E.usuario = j.usuario;
   montar();
+  sincronizarExfis();
   try { await recargar(); } catch (e) {}
 })();
 })();
