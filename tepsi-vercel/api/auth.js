@@ -41,8 +41,12 @@ export default async function handler(req, res) {
       if (!correoOk) return res.status(400).json({ error: 'Escribe un correo válido.' });
       const host = req.headers['x-forwarded-host'] || req.headers.host || '';
       const origen = (/^(localhost|127\.0\.0\.1)(:|$)/.test(host) ? 'http://' : 'https://') + host;
-      try { await llamarAuth('/request-password-reset', { cuerpo: { email, redirectTo: origen + '/?recuperar=1' } }); } catch (e) { console.error(e); }
-      // Siempre la misma respuesta, exista o no la cuenta.
+      const r = await llamarAuth('/request-password-reset', { origen, cuerpo: { email, redirectTo: origen + '/?recuperar=1' } });
+      if (!r.ok) { // falla del servicio (p. ej. dominio no autorizado en Neon Auth): no se oculta
+        console.error('recuperar:', r.status, (await r.text()).slice(0, 200));
+        return res.status(502).json({ error: 'No se pudo enviar el correo de recuperación. Inténtalo más tarde o avisa a la coordinación.' });
+      }
+      // Misma respuesta exista o no la cuenta.
       return res.status(200).json({ ok: true });
     }
     if (b.accion === 'nueva_clave') {

@@ -25,8 +25,9 @@ export function cookieDeNeon(r) {
   for (const c of lista) { const m = c.match(/neon-auth\.session_token=([^;]+)/); if (m) return m[1]; }
   return null;
 }
-export function llamarAuth(ruta, { cuerpo, sesion, metodo } = {}) {
-  const headers = { origin: 'http://localhost:3000' };
+// `origen`: Neon Auth solo acepta un enlace de retorno (redirectTo) cuyo origen coincida con el de la solicitud.
+export function llamarAuth(ruta, { cuerpo, sesion, metodo, origen } = {}) {
+  const headers = { origin: origen || 'http://localhost:3000' };
   if (cuerpo) headers['content-type'] = 'application/json';
   if (sesion) headers.cookie = `${COOKIE_NEON}=${sesion}`;
   return fetch(AUTH() + ruta, { method: metodo || (cuerpo ? 'POST' : 'GET'), headers, body: cuerpo ? JSON.stringify(cuerpo) : undefined });
