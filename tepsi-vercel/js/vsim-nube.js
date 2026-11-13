@@ -130,30 +130,54 @@ function abrirDocs() {
 }
 
 /* ================= Sesión ================= */
-function abrirLogin(modo = 'entrar') {
-  const d = $('#vnDlgLogin'), reg = modo === 'registro';
+const LOGIN = {
+  entrar: { tit: 'Ingreso docente', ayuda: 'Entra con tu cuenta para editar casos e imágenes.', ok: 'Entrar', cambio: 'Crear cuenta de docente', a: 'registro', campos: ['email', 'password'] },
+  registro: { tit: 'Crear cuenta de docente', ayuda: 'Necesitas el código de invitación que entrega la coordinación del Centro.', ok: 'Crear cuenta', cambio: 'Ya tengo cuenta', a: 'entrar', campos: ['nombre', 'email', 'password', 'codigo'] },
+  recuperar: { tit: 'Recuperar contraseña', ayuda: 'Escribe el correo de tu cuenta y te enviaremos un enlace para crear una contraseña nueva.', ok: 'Enviar enlace', cambio: 'Volver a ingresar', a: 'entrar', campos: ['email'] },
+  nueva: { tit: 'Crear contraseña nueva', ayuda: 'Elige una contraseña nueva para tu cuenta.', ok: 'Guardar contraseña', cambio: 'Volver a ingresar', a: 'entrar', campos: ['password'] }
+};
+function abrirLogin(modo = 'entrar', mensaje = '', error = false) {
+  const d = $('#vnDlgLogin'), M = LOGIN[modo], f = $('#vnLoginForm');
   d.dataset.modo = modo;
-  $('#vnLoginTit').textContent = reg ? 'Crear cuenta de docente' : 'Ingreso docente';
-  $('#vnLoginAyuda').textContent = reg ? 'Necesitas el código de invitación que entrega la coordinación del Centro.' : 'Entra con tu cuenta para editar casos e imágenes.';
-  d.querySelectorAll('[data-reg]').forEach(x => { x.hidden = !reg; x.querySelector('input').required = reg; });
-  $('#vnLoginPass').autocomplete = reg ? 'new-password' : 'current-password';
-  $('#vnLoginOk').textContent = reg ? 'Crear cuenta' : 'Entrar';
-  $('#vnLoginCambio').textContent = reg ? 'Ya tengo cuenta' : 'Crear cuenta de docente';
-  $('#vnLoginEstado').textContent = '';
+  $('#vnLoginTit').textContent = M.tit; $('#vnLoginAyuda').textContent = M.ayuda;
+  for (const n of ['nombre', 'email', 'password', 'codigo']) { const on = M.campos.includes(n), el = f.elements[n]; el.closest('label').hidden = !on; el.required = on; el.disabled = !on; }
+  $('#vnLoginPass').autocomplete = modo === 'entrar' ? 'current-password' : 'new-password';
+  $('#vnLoginPassEtq').textContent = modo === 'nueva' ? 'Contraseña nueva (mínimo 8 caracteres)' : 'Contraseña (mínimo 8 caracteres)';
+  $('#vnLoginOk').textContent = M.ok; $('#vnLoginCambio').textContent = M.cambio;
+  $('#vnLoginOlvido').hidden = modo !== 'entrar';
+  const st = $('#vnLoginEstado'); st.className = 'doc-estado' + (error ? ' vn-error' : ''); st.textContent = mensaje;
   if (!d.open) d.showModal();
 }
 async function enviarLogin(e) {
   e.preventDefault();
-  const d = $('#vnDlgLogin'), f = e.target, st = $('#vnLoginEstado'), ok = $('#vnLoginOk');
-  const cuerpo = { accion: d.dataset.modo, email: f.email.value, password: f.password.value, nombre: f.nombre.value, codigo: f.codigo.value };
+  const d = $('#vnDlgLogin'), f = e.target, st = $('#vnLoginEstado'), ok = $('#vnLoginOk'), modo = d.dataset.modo;
   ok.disabled = true; st.className = 'doc-estado'; st.textContent = 'Un momento…';
   try {
-    const j = await api('/api/auth', 'POST', cuerpo);
+    if (modo === 'recuperar') {
+      await api('/api/auth', 'POST', { accion: 'recuperar', email: f.email.value });
+      st.textContent = 'Si ese correo tiene una cuenta, te llegará un enlace en unos minutos. Revisa también la carpeta de spam.';
+      return;
+    }
+    if (modo === 'nueva') {
+      await api('/api/auth', 'POST', { accion: 'nueva_clave', token: E.tokenClave, password: f.password.value });
+      E.tokenClave = null; f.password.value = '';
+      abrirLogin('entrar', 'Contraseña actualizada. Entra con tu contraseña nueva.');
+      return;
+    }
+    const j = await api('/api/auth', 'POST', { accion: modo, email: f.email.value, password: f.password.value, nombre: f.nombre.value, codigo: f.codigo.value });
     E.usuario = j.usuario; f.password.value = ''; f.codigo.value = '';
     if (!esDoc()) { st.className = 'doc-estado vn-error'; st.textContent = 'Tu cuenta no tiene permiso de docente.'; return; }
     d.close(); await recargar(); X.alSesion.forEach(f => f()); abrirPanel();
   } catch (err) { st.className = 'doc-estado vn-error'; st.textContent = err.message; }
   finally { ok.disabled = false; }
+}
+// Al volver desde el enlace del correo, la página trae ?recuperar=1&token=… (o &error=… si el enlace venció).
+function revisarEnlaceClave() {
+  const q = new URLSearchParams(location.search); if (!q.has('recuperar')) return;
+  const token = q.get('token'), error = q.get('error');
+  try { history.replaceState(null, '', location.pathname + location.hash); } catch (e) {}
+  if (token && !error) { E.tokenClave = token; abrirLogin('nueva'); }
+  else abrirLogin('recuperar', 'El enlace venció o ya fue usado. Pide uno nuevo.', true);
 }
 async function salir() {
   try { await api('/api/auth', 'POST', { accion: 'salir' }); } catch (e) {}
@@ -438,8 +462,9 @@ function montar() {
   <h3 id="vnLoginTit">Ingreso docente</h3><p id="vnLoginAyuda"></p>
   <label class="campo" data-reg hidden><span>Nombre y apellido</span><input type="text" name="nombre" autocomplete="name" maxlength="120"></label>
   <label class="campo"><span>Correo</span><input type="email" name="email" autocomplete="email" required></label>
-  <label class="campo"><span>Contraseña (mínimo 8 caracteres)</span><input type="password" name="password" id="vnLoginPass" minlength="8" required></label>
+  <label class="campo"><span id="vnLoginPassEtq">Contraseña (mínimo 8 caracteres)</span><input type="password" name="password" id="vnLoginPass" minlength="8" required></label>
   <label class="campo" data-reg hidden><span>Código de invitación</span><input type="text" name="codigo" autocomplete="off"></label>
+  <button type="button" class="vn-link vn-olvido" id="vnLoginOlvido">¿Olvidaste tu contraseña?</button>
   <span class="doc-estado" id="vnLoginEstado" role="status"></span>
   <div class="vn-acc"><button type="button" class="vn-link" id="vnLoginCambio"></button><button type="button" class="btn" id="vnLoginNo">Cancelar</button><button type="submit" class="btn btn-primario" id="vnLoginOk">Entrar</button></div>
 </form></dialog>
@@ -458,7 +483,8 @@ function montar() {
   $('.vn-tabs').addEventListener('keydown', e => { if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return; const t = [...document.querySelectorAll('.vn-tab')], i = t.indexOf(document.activeElement); if (i < 0) return; const n = t[(i + (e.key === 'ArrowRight' ? 1 : t.length - 1)) % t.length]; n.focus(); n.click(); });
   $('#vnForm').onsubmit = e => E.ed && E.ed.tipo === 'nuevo' ? crearCaso(e) : guardarCaso(e);
   $('#vnLoginForm').onsubmit = enviarLogin; $('#vnLoginNo').onclick = () => $('#vnDlgLogin').close();
-  $('#vnLoginCambio').onclick = () => abrirLogin($('#vnDlgLogin').dataset.modo === 'registro' ? 'entrar' : 'registro');
+  $('#vnLoginCambio').onclick = () => abrirLogin(LOGIN[$('#vnDlgLogin').dataset.modo].a);
+  $('#vnLoginOlvido').onclick = () => abrirLogin('recuperar');
   $('#vnArchivo').onchange = e => { subir(e.target.files); e.target.value = ''; };
   const Z = $('#vnSubir');
   Z.ondragover = e => { e.preventDefault(); Z.classList.add('sobre'); }; Z.ondragleave = () => Z.classList.remove('sobre');
@@ -469,14 +495,19 @@ function montar() {
 }
 
 // Puntos de extensión para js/vsim-aula.js (secciones, asignaciones y resultados).
+// El modo docente del examen físico (administrar imágenes por zona) sigue la sesión del panel.
+function sincronizarExfis() { if (window.EXFIS && EXFIS.modoDocente) EXFIS.modoDocente(esDoc()); }
 const X = { E, MODS, $, esc, api, esDoc, porId, baseDe, variantes, nombreBase: (m, k) => nombreBase(m, k), enPantalla, irCaso, irTab: t => irTab(t), abrirPanel: () => abrirPanel(), tabs: {}, alDecorar: [], alMontar: [], alSesion: [] };
 window.VSIM = { variante: mod => E.activa[mod] || null, _: X };
+X.alSesion.push(sincronizarExfis);
 (async () => {
   if (!window.TEPSI_DOC && !window.RN_DOC) return;
   let j;
   try { j = await api('/api/auth'); } catch (e) { return; } // sin servidor configurado: el simulador sigue igual
   E.usuario = j.usuario;
   montar();
+  sincronizarExfis();
+  revisarEnlaceClave();
   try { await recargar(); } catch (e) {}
 })();
 })();

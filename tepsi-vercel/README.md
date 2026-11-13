@@ -32,6 +32,10 @@ El botón **Docente** de la barra superior abre un panel con tres pestañas:
 - **Resultados**: por sección, quién hizo cada caso asignado, puntajes por intento, detalle de lo no logrado, entrevista con la madre y exportación a Excel (CSV).
 - **Docentes**: quiénes tienen acceso de edición.
 
+### Recuperar contraseña
+
+En la ventana de ingreso docente, **¿Olvidaste tu contraseña?** envía un correo con un enlace (lo manda Neon Auth, remitente `auth@mail.myneon.app`). El enlace vuelve al simulador y permite crear una contraseña nueva; sirve una sola vez. El dominio del sitio debe estar en los dominios de confianza de Neon Auth (ya está `https://vsimchile.vercel.app`; si cambias de dominio, agrégalo en console.neon.tech → Auth).
+
 ### Estudiantes
 
 El botón **Mi sección** pide el código de la sección, nombre y correo (sin contraseña). Desde ahí el estudiante ve los casos asignados y los abre. El resultado se envía cuando presiona **Revisar** en el caso (formulario y conducta en TEPSI, examen en recién nacido). Puede repetir un caso: cada vez queda como un intento nuevo. Lo que haga fuera de lo asignado queda como práctica libre.
