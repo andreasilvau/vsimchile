@@ -66,3 +66,50 @@
   .vn-adj-it .btn{grid-column:1/-1}
   .vn-quien{display:none}
 }
+
+/* ===== Secciones, asignaciones y resultados ===== */
+#vnAula{margin-left:auto}
+#vnAula:not([hidden])~.inicio-btn{margin-left:0}
+.va-dlg{width:min(560px,calc(100vw - 32px))}
+.va-lista{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.va-lista li{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--panel)}
+.va-lista li>div{flex:1 1 180px;min-width:0;display:grid;gap:2px;color:var(--ink)}
+.va-lista small{font-size:12px;color:var(--muted)}
+.va-lista .btn{min-height:38px;padding:4px 12px}
+.va-aviso{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;background:var(--brand);color:var(--brand-ink);font-weight:600;font-size:14px;padding:10px 16px;border-radius:999px;box-shadow:0 6px 24px rgba(0,0,0,.3);max-width:calc(100vw - 32px);text-align:center}
+.va-nueva,.va-barra,.va-asignar{display:flex;flex-wrap:wrap;gap:10px 12px;align-items:flex-end}
+.va-nueva .campo{flex:1 1 320px;max-width:560px}
+.va-barra .campo{flex:0 1 320px}
+.va-asignar{border-top:1px solid var(--line);padding-top:12px}
+.va-asignar .campo{flex:1 1 200px}
+.va-asignar select,.va-barra select{font:inherit;font-size:15px;color:var(--ink);background:var(--panel);border:1px solid var(--field);border-radius:8px;padding:7px 9px;min-height:40px;width:100%}
+.va-secs{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,420px),1fr));gap:16px;align-items:start}
+.va-sec{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:14px 16px;display:grid;gap:10px}
+.va-sec header{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.va-sec h3,.va-h{font-family:var(--display);font-size:17px;margin:0;color:var(--ink)}
+.va-sec p{margin:0}
+.va-cod{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;font-size:13px;color:var(--muted)}
+.va-cod b{font-family:var(--mono);font-size:22px;letter-spacing:.12em;color:var(--brand)}
+.va-cod .btn{min-height:36px;padding:4px 10px;font-size:13px}
+.va-sec .vn-fila{justify-content:flex-start}
+.va-res{display:grid;gap:16px}
+.va-cajas{display:flex;flex-wrap:wrap;gap:12px}
+.va-caja{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:10px 16px;display:grid;min-width:150px}
+.va-caja b{font-family:var(--display);font-size:24px;color:var(--brand)}
+.va-caja span{font-size:13px;color:var(--muted)}
+.va-scrollx{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.va-matriz{max-width:none;min-width:520px}
+.va-matriz td,.va-matriz th{vertical-align:top}
+.va-matriz small{color:var(--muted);font-weight:400}
+.va-nada{color:var(--muted)}
+.va-est{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:0 14px}
+.va-est>summary{cursor:pointer;padding:12px 0;display:flex;flex-wrap:wrap;gap:4px 14px;align-items:baseline;min-height:44px}
+.va-est>summary span{font-size:13px;color:var(--muted)}
+.va-int{border-top:1px solid var(--line);padding:10px 0;display:grid;gap:6px;font-size:14px}
+.va-int p{margin:0}
+.va-lin{margin:0;padding-left:20px;display:grid;gap:2px}
+.va-lin li.ok{color:var(--ok)}
+.va-lin li.no{color:var(--hi)}
+.va-lin li.sug{color:var(--wait)}
+.va-chat{display:grid;gap:4px;padding:6px 0;max-height:260px;overflow-y:auto}
+.va-chat p{font-size:13px}

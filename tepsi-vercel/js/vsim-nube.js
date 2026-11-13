@@ -61,6 +61,7 @@ function decorar(mod) {
   }
   if (obs[mod]) obs[mod].takeRecords();
   pintarBotonDocs();
+  X.alDecorar.forEach(f => { try { f(mod); } catch (e) { console.error(e); } });
 }
 function soltar(mod) {
   const v = porId(E.activa[mod]); E.activa[mod] = null;
@@ -92,6 +93,21 @@ function vigilar(mod) {
     soltar(mod);
     const n = nativos(c)[i]; if (n) n.click();
   }, true);
+}
+// Caso que el estudiante tiene en pantalla: original (k) o caso docente (id).
+function enPantalla(mod) {
+  const doc = MODS[mod].doc(), c = $(MODS[mod].cont); if (!doc || !c) return null;
+  const v = porId(E.activa[mod]); if (v) return { k: v.base, id: v.id, titulo: v.titulo };
+  const i = nativos(c).findIndex(b => b.getAttribute('aria-pressed') === 'true'), x = doc.casos()[i];
+  return x ? { k: x.k, id: null, titulo: x.nombre } : null;
+}
+function irCaso(mod, k, id) {
+  const ir = document.querySelector(`[data-ir="${mod}"]`); if (ir) ir.click();
+  if (id) return activar(mod, id);
+  const doc = MODS[mod].doc(), c = $(MODS[mod].cont), i = doc.casos().findIndex(x => x.k === k);
+  soltar(mod);
+  E.interno = true; try { const b = nativos(c)[i]; if (b) b.click(); } finally { E.interno = false; }
+  decorar(mod);
 }
 function casoActual() {
   const mod = document.body.dataset.modulo; if (!MODS[mod]) return null;
@@ -135,13 +151,13 @@ async function enviarLogin(e) {
     const j = await api('/api/auth', 'POST', cuerpo);
     E.usuario = j.usuario; f.password.value = ''; f.codigo.value = '';
     if (!esDoc()) { st.className = 'doc-estado vn-error'; st.textContent = 'Tu cuenta no tiene permiso de docente.'; return; }
-    d.close(); await recargar(); abrirPanel();
+    d.close(); await recargar(); X.alSesion.forEach(f => f()); abrirPanel();
   } catch (err) { st.className = 'doc-estado vn-error'; st.textContent = err.message; }
   finally { ok.disabled = false; }
 }
 async function salir() {
   try { await api('/api/auth', 'POST', { accion: 'salir' }); } catch (e) {}
-  E.usuario = null; cerrarPanel(); await recargar();
+  E.usuario = null; cerrarPanel(); await recargar(); X.alSesion.forEach(f => f());
 }
 
 /* ================= Datos ================= */
@@ -183,6 +199,7 @@ function irTab(t) {
   if (t === 'casos') { pintarLista(); if (!E.ed) abrirCaso({ tipo: 'base', mod: 'tepsi', k: MODS.tepsi.doc().casos()[0].k }); }
   if (t === 'imagenes') cargarMedios();
   if (t === 'docentes') cargarDocentes();
+  if (X.tabs[t]) X.tabs[t]();
 }
 
 /* ---- Pestaña Casos ---- */
@@ -436,7 +453,8 @@ function montar() {
   db.onclick = () => esDoc() ? abrirPanel() : abrirLogin();
   $('#vnDocs').onclick = abrirDocs; $('#vnDocsCerrar').onclick = () => $('#vnDlgDocs').close();
   $('#vnCerrar').onclick = () => { cerrarPanel(); db.focus(); }; $('#vnSalir').onclick = salir;
-  document.querySelectorAll('.vn-tab').forEach(b => b.onclick = () => irTab(b.dataset.tab));
+  X.alMontar.forEach(f => f());
+  $('.vn-tabs').addEventListener('click', e => { const b = e.target.closest('.vn-tab'); if (b) irTab(b.dataset.tab); });
   $('.vn-tabs').addEventListener('keydown', e => { if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return; const t = [...document.querySelectorAll('.vn-tab')], i = t.indexOf(document.activeElement); if (i < 0) return; const n = t[(i + (e.key === 'ArrowRight' ? 1 : t.length - 1)) % t.length]; n.focus(); n.click(); });
   $('#vnForm').onsubmit = e => E.ed && E.ed.tipo === 'nuevo' ? crearCaso(e) : guardarCaso(e);
   $('#vnLoginForm').onsubmit = enviarLogin; $('#vnLoginNo').onclick = () => $('#vnDlgLogin').close();
@@ -450,7 +468,9 @@ function montar() {
   for (const mod in MODS) vigilar(mod);
 }
 
-window.VSIM = { variante: mod => E.activa[mod] || null };
+// Puntos de extensión para js/vsim-aula.js (secciones, asignaciones y resultados).
+const X = { E, MODS, $, esc, api, esDoc, porId, baseDe, variantes, nombreBase: (m, k) => nombreBase(m, k), enPantalla, irCaso, irTab: t => irTab(t), abrirPanel: () => abrirPanel(), tabs: {}, alDecorar: [], alMontar: [], alSesion: [] };
+window.VSIM = { variante: mod => E.activa[mod] || null, _: X };
 (async () => {
   if (!window.TEPSI_DOC && !window.RN_DOC) return;
   let j;
