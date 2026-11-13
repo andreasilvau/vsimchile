@@ -287,6 +287,7 @@ const ORIG_T={};
 const campos=k=>{const C=CASOS[k];return {nombre:C.nombre,edad:C.edad,sexo:C.sexo,ctx:C.ctx,ident:{...C.ident},mama:{nombre:C.mama.nombre,tono:C.mama.tono,hechos:C.mama.hechos},resp:PREGUNTAS.map(p=>p[k]),cierre:C.cierre,conducta:{...(C.conducta||{})},motivo:C.motivo||''};};
 for(const k in CASOS)ORIG_T[k]=JSON.parse(JSON.stringify(campos(k)));
 window.TEPSI_DOC={
+  intento:()=>({caso,revisado,items:ITEMS.map(i=>({id:i.id,mia:resp[i.id]||null,ok:correcta(i.id)})),charla:charla.map(m=>({quien:m.quien,txt:m.txt}))}),
   casos:()=>Object.keys(CASOS).map(k=>({k,nombre:CASOS[k].nombre})),
   leer:k=>JSON.parse(JSON.stringify(campos(k))),
   original:k=>JSON.parse(JSON.stringify(ORIG_T[k])),

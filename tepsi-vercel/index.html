@@ -1947,7 +1947,7 @@ ${M.hechos}`;
   return `${guia}\n\nCONVERSACIÓN HASTA AHORA:\n${turnos}\n\nResponde ahora como ${M.nombre} a la última pregunta de la estudiante. Solo el texto de la respuesta.`;
 }
 async function preguntarIA(historial){
-  if(API_MAMA){const r=await fetch(API_MAMA,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({caso,historial,prompt:promptMama(historial)})});if(!r.ok)throw {code:'http'};const j=await r.json();return j.texto;}
+  if(API_MAMA){const r=await fetch(API_MAMA,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({caso,variante:(window.VSIM&&VSIM.variante('tepsi'))||null,historial})});if(!r.ok)throw {code:'http'};const j=await r.json();return j.texto;}
   const {text}=await iaSample(promptMama(historial),{modelTier:'quick',cache:false});return text.trim().replace(/^["“]|["”]$/g,'');
 }
 
@@ -2240,6 +2240,7 @@ const ORIG_T={};
 const campos=k=>{const C=CASOS[k];return {nombre:C.nombre,edad:C.edad,sexo:C.sexo,ctx:C.ctx,ident:{...C.ident},mama:{nombre:C.mama.nombre,tono:C.mama.tono,hechos:C.mama.hechos},resp:PREGUNTAS.map(p=>p[k]),cierre:C.cierre,conducta:{...(C.conducta||{})},motivo:C.motivo||''};};
 for(const k in CASOS)ORIG_T[k]=JSON.parse(JSON.stringify(campos(k)));
 window.TEPSI_DOC={
+  intento:()=>({caso,revisado,items:ITEMS.map(i=>({id:i.id,mia:resp[i.id]||null,ok:correcta(i.id)})),charla:charla.map(m=>({quien:m.quien,txt:m.txt}))}),
   casos:()=>Object.keys(CASOS).map(k=>({k,nombre:CASOS[k].nombre})),
   leer:k=>JSON.parse(JSON.stringify(campos(k))),
   original:k=>JSON.parse(JSON.stringify(ORIG_T[k])),
@@ -2814,6 +2815,7 @@ function loop(now){
 cargarCaso('A');
 const ORIG_R=JSON.parse(JSON.stringify(CASOS));
 window.RN_DOC={
+  intento:()=>({caso,revisado,lista:REFL.map(r=>({id:r.id,nombre:r.nombre,mia:respuestas[r.id]||null,ok:respCorrecta(caso,r.id)}))}),
   casos:()=>Object.keys(CASOS).map(k=>({k,nombre:CASOS[k].nombre})),
   reflejos:()=>REFL.map(r=>({id:r.id,nombre:r.nombre})),opciones:()=>OPC,
   leer:k=>JSON.parse(JSON.stringify(CASOS[k])),original:k=>JSON.parse(JSON.stringify(ORIG_R[k])),
@@ -3173,8 +3175,7 @@ function iniciar(){
   efCtl.update();
 
   /* ---------- Cargar modelo (mismo patrón que módulo RN) ---------- */
-  try{
-    const bin=Uint8Array.from(atob(RN_GLB),ch=>ch.charCodeAt(0)).buffer;
+  cargarBin('models/rn.glb').then(bin=>{
     const GL=new THREE.GLTFLoader();
     if(window.MeshoptDecoder)GL.setMeshoptDecoder(window.MeshoptDecoder);
     GL.parse(bin,'',g=>{
@@ -3435,4 +3436,7 @@ window.EXFIS={
 })();
 </script>
 
+<link rel="stylesheet" href="css/vsim-nube.css">
+<script src="js/vsim-nube.js"></script>
+<script src="js/vsim-aula.js"></script>
 </body></html>

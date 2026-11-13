@@ -1,5 +1,7 @@
 // Función de Vercel: responde como la madre del caso usando la API de Claude.
 // Requiere la variable de entorno ANTHROPIC_API_KEY (y opcionalmente ANTHROPIC_MODEL).
+import { sql, esUUID } from './_lib.js';
+
 const CASOS = {
   "A": {
     "nino": "Tomás",
@@ -17,6 +19,20 @@ const CASOS = {
   }
 };
 
+// Si el caso fue editado o creado en el panel docente, sus hechos se leen de la base de datos.
+async function casoGuardado(caso, variante) {
+  if (!process.env.DATABASE_URL) return null;
+  try {
+    const [fila] = esUUID(variante)
+      ? await sql`select base, datos from casos where id = ${variante} and modulo = 'tepsi'`
+      : await sql`select base, datos from casos where modulo = 'tepsi' and base = ${String(caso || '')} and es_base and estado = 'publicado'`;
+    if (!fila || !fila.datos) return null;
+    const d = fila.datos, m = d.mama || {}, o = CASOS[fila.base] || {};
+    const c = { nino: d.nombre || o.nino, edad: d.edad || o.edad, mama: m.nombre || o.mama, tono: m.tono || o.tono, hechos: String(m.hechos || o.hechos || '').slice(0, 8000) };
+    return c.nino && c.mama && c.hechos ? c : null;
+  } catch (e) { console.error(e); return null; }
+}
+
 function prompt(c, historial) {
   const guia = `Eres ${c.mama}, madre de ${c.nino} (${c.edad}), en un control de salud en un CESFAM de Chile. Una estudiante de salud te entrevista antes de aplicar el TEPSI.
 Responde SOLO como la madre, en español de Chile, en 1 a 3 frases, con tono ${c.tono}. Usa únicamente estos hechos; si te preguntan algo que no está, responde con naturalidad sin inventar datos clínicos importantes ("no sé", "no me acuerdo", "no que yo sepa").
@@ -29,8 +45,8 @@ ${c.hechos}`;
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido' });
-  const { caso, historial } = req.body || {};
-  const c = CASOS[caso];
+  const { caso, variante, historial } = req.body || {};
+  const c = (await casoGuardado(caso, variante)) || CASOS[caso];
   if (!c || !Array.isArray(historial) || !historial.length) return res.status(400).json({ error: 'Solicitud inválida' });
   const h = historial.slice(-20).map(m => ({ quien: m.quien === 'est' ? 'est' : 'mama', txt: String(m.txt || '').slice(0, 500) }));
   try {
