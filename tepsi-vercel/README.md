@@ -24,13 +24,12 @@ Esta carpeta publica el simulador como sitio propio. La diferencia con el artefa
 
 ## Panel docente (Vercel + Neon)
 
-El botón **Docente** de la barra superior abre un panel con tres pestañas:
+El botón **Docente** de la barra superior abre el panel. Está ordenado como la portada del estudiante: una entrada por evaluación, más el aula.
 
-- **Casos**: editar los casos originales (TEPSI y recién nacido) y crear casos nuevos a partir de uno existente. Un caso nuevo usa el modelo 3D y el comportamiento del caso del que parte; cambian la historia, las respuestas de la madre, los hallazgos esperados, el cierre y las imágenes. Queda como borrador hasta que se publica.
-- **Imágenes**: biblioteca de imágenes (carné de control, ecografías, curvas). Se reducen en el navegador antes de subir y se adjuntan a los casos; el estudiante las ve con el botón **Documentos**.
-- **Secciones**: una por grupo de estudiantes. Cada sección tiene un código; se le asignan casos (con plazo opcional) y se puede cerrar el ingreso.
-- **Resultados**: por sección, quién hizo cada caso asignado, puntajes por intento, detalle de lo no logrado, entrevista con la madre y exportación a Excel (CSV).
-- **Docentes**: quiénes tienen acceso de edición.
+- **TEPSI** y **Reflejos**: cada evaluación tiene sus pestañas **Casos** (editar los originales y crear casos nuevos a partir de uno existente; quedan como borrador hasta publicarlos) e **Imágenes** (biblioteca propia de esa evaluación; se adjuntan a los casos y el estudiante las ve con el botón **Documentos**).
+- **Examen físico**: imágenes clínicas por zona, con su descripción y la respuesta correcta (hallazgo normal o signo de alerta). Se guardan en la base, así que las ven todos los estudiantes.
+- **Secciones**: una por grupo de estudiantes. Dentro de cada sección están **Resultados** (matriz, detalle por intento y exportación a CSV), **Casos asignados**, **Estudiantes** y **Ajustes** (nombre, cerrar el ingreso, eliminar).
+- **Menú de cuenta** (abajo en la barra lateral): docentes con acceso y cerrar sesión.
 
 ### Recuperar contraseña
 
@@ -61,7 +60,7 @@ Después de agregarlas hay que volver a publicar (Redeploy).
 
 ### Base de datos
 
-Tablas en Neon: `perfiles` (rol de cada cuenta), `casos` (ediciones y casos nuevos, con sus datos en JSON), `medios` (imágenes) y `caso_medios` (qué imagen va en qué caso). Para el aula: `secciones`, `asignaciones`, `estudiantes`, `estudiante_tokens` (ingreso recordado en cada equipo) e `intentos` (resultados, con el detalle en JSON). Las cuentas y contraseñas las administra Neon Auth.
+Tablas en Neon: `perfiles` (rol de cada cuenta), `casos` (ediciones y casos nuevos, con sus datos en JSON), `medios` (imágenes, con la evaluación a la que pertenecen), `caso_medios` (qué imagen va en qué caso) y `exfis_imagenes` (imágenes del examen físico por zona). Para el aula: `secciones`, `asignaciones`, `estudiantes`, `estudiante_tokens` (ingreso recordado en cada equipo) e `intentos` (resultados, con el detalle en JSON). Las cuentas y contraseñas las administra Neon Auth.
 
 ### Cuidados
 

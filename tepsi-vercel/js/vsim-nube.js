@@ -10,7 +10,7 @@ const MODS = {
   tepsi: { nombre: 'TEPSI', doc: () => window.TEPSI_DOC, cont: '#casos' },
   rn: { nombre: 'Recién nacido', doc: () => window.RN_DOC, cont: '#rnCasos' }
 };
-const E = { usuario: null, casos: [], medios: [], activa: { tepsi: null, rn: null }, interno: false, ed: null, tab: 'casos' };
+const E = { usuario: null, casos: [], medios: [], activa: { tepsi: null, rn: null }, interno: false, ed: null, eds: {}, vista: 'tepsi', sub: { tepsi: 'casos', rn: 'casos' }, exfis: [], zona: null };
 const esDoc = () => !!E.usuario && E.usuario.rol === 'docente';
 const porId = id => E.casos.find(c => c.id === id);
 const baseDe = (mod, k) => E.casos.find(c => c.modulo === mod && c.es_base && c.base === k);
@@ -213,34 +213,49 @@ function abrirPanel() {
   const P = $('#vnPanel');
   P.style.top = $('.topbar').offsetHeight + 'px'; P.hidden = false;
   $('#vnQuien').textContent = E.usuario.nombre || E.usuario.email;
-  irTab(E.tab); $('#vnTit').focus();
+  ir(E.vista); $('#vnTit').focus();
 }
 function cerrarPanel() { $('#vnPanel').hidden = true; }
-function irTab(t) {
-  E.tab = t;
-  document.querySelectorAll('.vn-tab').forEach(b => { const on = b.dataset.tab === t; b.setAttribute('aria-selected', on); b.tabIndex = on ? 0 : -1; });
-  document.querySelectorAll('.vn-vista').forEach(v => v.hidden = v.id !== 'vn-' + t);
-  if (t === 'casos') { pintarLista(); if (!E.ed) abrirCaso({ tipo: 'base', mod: 'tepsi', k: MODS.tepsi.doc().casos()[0].k }); }
-  if (t === 'imagenes') cargarMedios();
-  if (t === 'docentes') cargarDocentes();
-  if (X.tabs[t]) X.tabs[t]();
+// El panel se ordena como la portada del estudiante: una entrada por evaluación, más el aula.
+const EVAL = {
+  tepsi: { tit: 'TEPSI', desc: 'Casos e imágenes de «Preescolar de 2 a 5 años», tal como los abre el estudiante.' },
+  rn: { tit: 'Reflejos del recién nacido', desc: 'Casos e imágenes del examen de reflejos primitivos.' }
+};
+const VISTAS = ['tepsi', 'rn', 'exfis', 'secciones', 'docentes'];
+function ir(vista, sub) {
+  if (!VISTAS.includes(vista)) vista = 'tepsi';
+  E.vista = vista; if (sub && MODS[vista]) E.sub[vista] = sub;
+  document.querySelectorAll('.vn-nav-it[data-vista]').forEach(b => { if (b.dataset.vista === vista) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
+  const cont = MODS[vista] ? 'eval' : vista;
+  document.querySelectorAll('.vn-vista').forEach(v => v.hidden = v.id !== 'vn-' + cont);
+  $('#vnCuenta').hidden = true; $('#vnCuentaBtn').setAttribute('aria-expanded', 'false');
+  if (MODS[vista]) renderEval();
+  else if (vista === 'exfis') renderExfis();
+  else if (vista === 'docentes') cargarDocentes();
+  if (X.tabs[vista]) X.tabs[vista]();
+}
+function renderEval() {
+  const mod = E.vista, sub = E.sub[mod];
+  $('#vnEvalTit').textContent = EVAL[mod].tit; $('#vnEvalDesc').textContent = EVAL[mod].desc;
+  document.querySelectorAll('#vn-eval .vn-tab').forEach(b => { const on = b.dataset.sub === sub; b.setAttribute('aria-selected', on); b.tabIndex = on ? 0 : -1; });
+  $('#vn-sub-casos').hidden = sub !== 'casos'; $('#vn-sub-imagenes').hidden = sub !== 'imagenes';
+  if (sub === 'imagenes') return cargarMedios();
+  const ed = E.eds[mod] || { tipo: 'base', mod, k: MODS[mod].doc().casos()[0].k };
+  if (ed.tipo === 'nuevo') formNuevo(); else abrirCaso(ed);
 }
 
 /* ---- Pestaña Casos ---- */
 const mismo = (a, b) => a && b && a.tipo === b.tipo && a.mod === b.mod && a.k === b.k && a.id === b.id;
 function pintarLista() {
-  const L = $('#vnLista'); let h = '<button type="button" class="btn btn-primario vn-nuevo" id="vnNuevo">Nuevo caso</button>';
-  for (const mod in MODS) {
-    const doc = MODS[mod].doc(); if (!doc) continue;
-    h += `<p class="doc-grupo">${MODS[mod].nombre} · originales</p>`;
-    for (const c of doc.casos()) { const ed = { tipo: 'base', mod, k: c.k }; h += `<button type="button" class="doc-it${mismo(E.ed, ed) ? ' on' : ''}" data-ed='${esc(JSON.stringify(ed))}'>${esc(c.nombre)}${baseDe(mod, c.k) ? '<small>Editado</small>' : ''}</button>`; }
-    const vs = variantes(mod);
-    if (vs.length) h += `<p class="doc-grupo">${MODS[mod].nombre} · casos nuevos</p>`;
-    for (const v of vs) { const ed = { tipo: 'var', mod, id: v.id }; h += `<button type="button" class="doc-it${mismo(E.ed, ed) ? ' on' : ''}" data-ed='${esc(JSON.stringify(ed))}'>${esc(v.titulo)}<span class="vn-etq ${v.estado === 'publicado' ? 'pub' : 'bor'}">${v.estado === 'publicado' ? 'Publicado' : 'Borrador'}</span></button>`; }
-  }
+  const L = $('#vnLista'), mod = E.vista, doc = MODS[mod] && MODS[mod].doc(); if (!doc) return;
+  const it = (ed, txt, extra) => `<button type="button" class="doc-it${mismo(E.ed, ed) ? ' on' : ''}" data-ed='${esc(JSON.stringify(ed))}'>${esc(txt)}${extra}</button>`;
+  let h = '<p class="doc-grupo">Originales</p>';
+  for (const c of doc.casos()) h += it({ tipo: 'base', mod, k: c.k }, c.nombre, baseDe(mod, c.k) ? '<small>Editado</small>' : '');
+  const vs = variantes(mod);
+  h += '<p class="doc-grupo">Casos nuevos</p>' + (vs.length ? '' : '<p class="nota vn-sin">Aún no hay. Crea uno con «Nuevo caso».</p>');
+  for (const v of vs) h += it({ tipo: 'var', mod, id: v.id }, v.titulo, `<span class="vn-etq ${v.estado === 'publicado' ? 'pub' : 'bor'}">${v.estado === 'publicado' ? 'Publicado' : 'Borrador'}</span>`);
   L.innerHTML = h;
   L.querySelectorAll('.doc-it').forEach(b => b.onclick = () => abrirCaso(JSON.parse(b.dataset.ed)));
-  $('#vnNuevo').onclick = formNuevo;
 }
 const campo = (etq, nombre, valor, tipo = 'text', extra = '') => `<label class="campo"><span>${etq}</span>${tipo === 'area' ? `<textarea name="${nombre}" rows="${extra || 3}" spellcheck="true">${esc(valor)}</textarea>` : `<input type="${tipo}" name="${nombre}" value="${esc(valor)}" spellcheck="false">`}</label>`;
 
@@ -276,16 +291,16 @@ function pintarAdjuntos(lista) {
       <button type="button" class="btn" data-quitar="${i}">Quitar</button></div>`).join('') : '<p class="nota">Este caso no tiene imágenes. El estudiante verá el botón "Documentos" cuando agregues alguna.</p>';
   A.querySelectorAll('[data-ley]').forEach(x => x.oninput = () => { lista[+x.dataset.ley].leyenda = x.value; });
   A.querySelectorAll('[data-quitar]').forEach(x => x.onclick = () => { lista.splice(+x.dataset.quitar, 1); pintarAdjuntos(lista); });
-  const S = $('#vnAdjSel'), libres = E.medios.filter(m => !lista.some(x => x.id === m.id));
+  const S = $('#vnAdjSel'), libres = E.medios.filter(m => m.modulo === E.vista && !lista.some(x => x.id === m.id));
   S.innerHTML = '<option value="">Agregar imagen de la biblioteca…</option>' + libres.map(m => `<option value="${m.id}">${esc(m.nombre)}</option>`).join('');
   S.disabled = !libres.length;
   S.onchange = () => { const m = E.medios.find(x => x.id === S.value); if (m) { lista.push({ id: m.id, nombre: m.nombre, alt: m.alt, leyenda: m.alt || '' }); pintarAdjuntos(lista); } };
 }
 async function abrirCaso(ed) {
-  E.ed = ed; pintarLista();
+  E.ed = ed; E.eds[ed.mod] = ed; pintarLista();
   const F = $('#vnForm'), mod = ed.mod, esVar = ed.tipo === 'var';
   const fila = esVar ? porId(ed.id) : baseDe(mod, ed.k);
-  if (esVar && !fila) { E.ed = null; return irTab('casos'); }
+  if (esVar && !fila) { E.ed = null; delete E.eds[mod]; return ir(mod, 'casos'); }
   const k = esVar ? fila.base : ed.k, o = originales(mod, k), d = fila ? fila.datos : o;
   const cab = esVar
     ? `<h3>${esc(fila.titulo)} · ${MODS[mod].nombre}</h3>
@@ -296,7 +311,7 @@ async function abrirCaso(ed) {
   F.innerHTML = cab + (mod === 'tepsi' ? camposTepsi(d, o) : camposRN(d, o)) +
     `<fieldset><legend>Imágenes del caso</legend><div class="vn-adj" id="vnAdj"></div>
        <label class="campo"><span>Biblioteca</span><select id="vnAdjSel"></select></label>
-       <p class="nota">Las imágenes se suben en la pestaña Imágenes. Recuerda guardar el caso después de agregar o quitar.</p></fieldset>
+       <p class="nota">Las imágenes se suben en la pestaña Imágenes de esta evaluación. Recuerda guardar el caso después de agregar o quitar.</p></fieldset>
      <div class="doc-acc"><button type="submit" class="btn btn-primario">${esVar ? 'Guardar' : 'Guardar para todos'}</button>
        ${esVar ? '<button type="button" class="btn" id="vnVer">Ver como estudiante</button><button type="button" class="btn vn-peligro" id="vnBorrar">Eliminar caso</button>' : '<button type="button" class="btn" id="vnRest">Restaurar original</button>'}
        <span class="doc-estado" id="vnEstado" role="status"></span></div>`;
@@ -344,7 +359,7 @@ async function restaurar(ed) {
 async function borrarCaso(ed) {
   const fila = porId(ed.id); if (!fila) return;
   if (!confirm(`¿Eliminar el caso "${fila.titulo}"? Esta acción no se puede deshacer.`)) return;
-  try { await api('/api/casos?id=' + ed.id, 'DELETE', {}); E.ed = null; await recargar(); irTab('casos'); }
+  try { await api('/api/casos?id=' + ed.id, 'DELETE', {}); E.ed = null; delete E.eds[ed.mod]; await recargar(); ir(ed.mod, 'casos'); }
   catch (err) { $('#vnEstado').className = 'doc-estado vn-error'; $('#vnEstado').textContent = err.message; }
 }
 function verComoEstudiante(mod, id) {
@@ -353,18 +368,18 @@ function verComoEstudiante(mod, id) {
   activar(mod, id);
 }
 function formNuevo() {
-  E.ed = { tipo: 'nuevo' }; pintarLista();
+  const mod = E.vista; E.ed = E.eds[mod] = { tipo: 'nuevo', mod }; pintarLista();
   const F = $('#vnForm');
   const fuentes = mod => MODS[mod].doc().casos().map(c => `<option value="b:${c.k}">${esc(c.nombre)} (original)</option>`).join('') + variantes(mod).map(v => `<option value="v:${v.id}">${esc(v.titulo)}</option>`).join('');
   F.innerHTML = `<h3>Nuevo caso</h3>
     <fieldset><legend>Punto de partida</legend><div class="doc-grid">
-      <label class="campo"><span>Evaluación</span><select name="vn.mod">${Object.keys(MODS).filter(m => MODS[m].doc()).map(m => `<option value="${m}">${MODS[m].nombre}</option>`).join('')}</select></label>
+      <input type="hidden" name="vn.mod" value="${mod}">
       <label class="campo"><span>Crear a partir de</span><select name="vn.fuente"></select></label>
       ${campo('Título del caso nuevo', 'vn.titulo', '')}</div>
       <p class="nota">El caso nuevo parte como copia del que elijas y usa su modelo 3D y su comportamiento. Después editas la historia, las respuestas, el cierre y las imágenes. Queda como borrador hasta que lo publiques.</p></fieldset>
     <div class="doc-acc"><button type="submit" class="btn btn-primario">Crear caso</button><span class="doc-estado" id="vnEstado" role="status"></span></div>`;
   const sm = F.elements['vn.mod'], sf = F.elements['vn.fuente'];
-  const llenar = () => { sf.innerHTML = fuentes(sm.value); }; sm.onchange = llenar; llenar();
+  sf.innerHTML = fuentes(sm.value);
   F.elements['vn.titulo'].focus();
 }
 async function crearCaso(e) {
@@ -399,7 +414,7 @@ async function subir(files) {
   st.className = 'doc-estado'; let ok = 0; const fallas = [];
   for (const f of lista) {
     st.textContent = `Subiendo ${ok + fallas.length + 1} de ${lista.length}…`;
-    try { const c = await comprimir(f); await api('/api/medios', 'POST', { nombre: f.name.replace(/\.[a-z0-9]+$/i, '').slice(0, 150), alt: '', tipo: c.tipo, base64: c.base64 }); ok++; }
+    try { const c = await comprimir(f); await api('/api/medios', 'POST', { nombre: f.name.replace(/\.[a-z0-9]+$/i, '').slice(0, 150), alt: '', tipo: c.tipo, base64: c.base64, modulo: E.vista }); ok++; }
     catch (err) { fallas.push(f.name); }
   }
   st.className = fallas.length ? 'doc-estado vn-error' : 'doc-estado';
@@ -409,11 +424,12 @@ async function subir(files) {
 async function cargarMedios() {
   const G = $('#vnGrilla');
   try { E.medios = (await api('/api/medios')).medios || []; } catch (err) { G.innerHTML = `<p class="vn-vacio vn-error">${esc(err.message)}</p>`; return; }
-  G.innerHTML = E.medios.length ? E.medios.map(m => `<article class="vn-img" data-id="${m.id}"><img src="${urlImg(m.id)}" alt="${esc(m.alt || m.nombre)}" loading="lazy">
+  const lista = E.medios.filter(m => m.modulo === E.vista);
+  G.innerHTML = lista.length ? lista.map(m => `<article class="vn-img" data-id="${m.id}"><img src="${urlImg(m.id)}" alt="${esc(m.alt || m.nombre)}" loading="lazy">
       ${campo('Nombre', 'nombre', m.nombre)}${campo('Descripción (texto alternativo)', 'alt', m.alt, 'area', 2)}
       <div class="vn-fila"><span>${kb(m.tamano)} · ${m.usos ? `en ${m.usos} ${m.usos === 1 ? 'caso' : 'casos'}` : 'sin usar'}${m.alt ? '' : ' · <strong class="vn-error">falta descripción</strong>'}</span></div>
       <div class="vn-fila"><button type="button" class="btn" data-acc="guardar">Guardar</button><button type="button" class="btn vn-peligro" data-acc="borrar">Eliminar</button></div></article>`).join('')
-    : '<p class="vn-vacio">Aún no hay imágenes. Sube ecografías, carnés de control, curvas de crecimiento u otros documentos y luego adjúntalos a un caso en la pestaña Casos.</p>';
+    : '<p class="vn-vacio">Aún no hay imágenes. Sube ecografías, carnés de control, curvas de crecimiento u otros documentos y luego adjúntalos a un caso en la pestaña Casos de esta evaluación.</p>';
   G.querySelectorAll('[data-acc]').forEach(b => b.onclick = async () => {
     const art = b.closest('.vn-img'), id = art.dataset.id, m = E.medios.find(x => x.id === id), st = $('#vnSubEstado');
     try {
@@ -424,7 +440,56 @@ async function cargarMedios() {
   });
 }
 
-/* ---- Pestaña Docentes ---- */
+/* ---- Examen físico: imágenes por zona ---- */
+async function cargarExfis() {
+  try { E.exfis = (await api('/api/medios?exfis=1')).imagenes || []; } catch (e) { return; }
+  if (!window.EXFIS || !EXFIS.imagenes) return;
+  const d = {}; for (const i of E.exfis) (d[i.zona] = d[i.zona] || []).push({ src: urlImg(i.medio_id), titulo: i.titulo, esNormal: i.es_normal });
+  EXFIS.imagenes(d);
+}
+const TIPOS_EF = es => `<option value="1" ${es ? 'selected' : ''}>Hallazgo normal</option><option value="0" ${es ? '' : 'selected'}>Signo de alerta</option>`;
+function renderExfis() {
+  const L = $('#vnZonas'), zonas = window.EXFIS && EXFIS.zonas ? EXFIS.zonas() : [];
+  if (!zonas.length) { L.innerHTML = ''; $('#vnZona').innerHTML = '<p class="vn-vacio">El módulo de examen físico no está disponible en esta página.</p>'; return; }
+  if (!zonas.some(z => z.id === E.zona)) E.zona = zonas[0].id;
+  L.innerHTML = '<p class="doc-grupo">Zonas del examen</p>' + zonas.map(z => { const n = E.exfis.filter(i => i.zona === z.id).length; return `<button type="button" class="doc-it${z.id === E.zona ? ' on' : ''}" data-zona="${z.id}">${esc(z.nombre)}${n ? `<span class="vn-etq pub">${n}</span>` : ''}</button>`; }).join('');
+  L.querySelectorAll('[data-zona]').forEach(b => b.onclick = () => { E.zona = b.dataset.zona; renderExfis(); });
+  const z = zonas.find(x => x.id === E.zona), imgs = E.exfis.filter(i => i.zona === z.id), C = $('#vnZona');
+  C.innerHTML = `<h3>${esc(z.nombre)}</h3>
+    <p class="nota">El estudiante ve estas imágenes al revisar la zona y responde si cada una es un hallazgo normal o un signo de alerta. Los textos de hallazgos y signos de alerta de la zona no se editan aquí.</p>
+    <fieldset><legend>Imágenes de la zona</legend><div class="vn-adj">${imgs.length ? imgs.map(i => `<div class="vn-adj-it vn-ef" data-id="${i.id}"><img src="${urlImg(i.medio_id)}" alt="${esc(i.titulo)}" loading="lazy">
+        <div class="doc-grid">${campo('Descripción que lee el estudiante', 'titulo', i.titulo)}<label class="campo"><span>Respuesta correcta</span><select name="tipo">${TIPOS_EF(i.es_normal)}</select></label></div>
+        <div class="vn-fila"><button type="button" class="btn" data-acc="guardar">Guardar</button><button type="button" class="btn vn-peligro" data-acc="quitar">Eliminar</button></div></div>`).join('') : '<p class="nota">Esta zona aún no tiene imágenes.</p>'}</div></fieldset>
+    <form class="vn-ef-nueva" id="vnEfNueva"><fieldset><legend>Agregar imagen</legend><div class="doc-grid">
+        <label class="campo"><span>Archivo de imagen</span><input type="file" name="archivo" accept="image/*" required></label>
+        ${campo('Descripción que lee el estudiante', 'titulo', '')}
+        <label class="campo"><span>Respuesta correcta</span><select name="tipo">${TIPOS_EF(true)}</select></label></div>
+      <p class="nota">No subas imágenes de pacientes reales sin anonimizar.</p>
+      <div class="doc-acc"><button type="submit" class="btn btn-primario">Agregar imagen</button><span class="doc-estado" id="vnEfEstado" role="status"></span></div></fieldset></form>`;
+  const st = () => $('#vnEfEstado'), falla = err => { st().className = 'doc-estado vn-error'; st().textContent = err.message; };
+  C.querySelectorAll('.vn-ef [data-acc]').forEach(b => b.onclick = async () => {
+    const fila = b.closest('.vn-ef'), id = fila.dataset.id;
+    try {
+      if (b.dataset.acc === 'guardar') await api('/api/medios', 'POST', { accion: 'exfis_editar', id, titulo: fila.querySelector('[name=titulo]').value, es_normal: fila.querySelector('[name=tipo]').value === '1' });
+      else { if (!confirm('¿Eliminar esta imagen de la zona?')) return; await api('/api/medios', 'POST', { accion: 'exfis_quitar', id }); }
+      await cargarExfis(); renderExfis(); st().textContent = b.dataset.acc === 'guardar' ? 'Imagen actualizada.' : 'Imagen eliminada.';
+    } catch (err) { falla(err); }
+  });
+  $('#vnEfNueva').onsubmit = async e => {
+    e.preventDefault(); const f = e.target, archivo = f.archivo.files[0], titulo = f.titulo.value.trim(), boton = f.querySelector('[type=submit]');
+    if (!archivo || !/^image\//.test(archivo.type)) return falla(new Error('Elige un archivo de imagen (JPG, PNG o WebP).'));
+    if (!titulo) { f.titulo.focus(); return falla(new Error('Escribe una descripción: es lo que el estudiante lee junto a la imagen.')); }
+    boton.disabled = true; st().className = 'doc-estado'; st().textContent = 'Subiendo…';
+    try {
+      const c = await comprimir(archivo);
+      const m = await api('/api/medios', 'POST', { nombre: titulo.slice(0, 150), alt: titulo, tipo: c.tipo, base64: c.base64, modulo: 'exfis' });
+      await api('/api/medios', 'POST', { accion: 'exfis_agregar', zona: z.id, medio_id: m.id, titulo, es_normal: f.tipo.value === '1' });
+      await cargarExfis(); renderExfis(); st().textContent = 'Imagen agregada. Los estudiantes ya la ven en esta zona.';
+    } catch (err) { falla(err); boton.disabled = false; }
+  };
+}
+
+/* ---- Docentes (menú de cuenta) ---- */
 async function cargarDocentes() {
   const T = $('#vnDocentes');
   try {
@@ -437,26 +502,41 @@ async function cargarDocentes() {
 function montar() {
   document.body.insertAdjacentHTML('beforeend', `
 <section class="docente vn-panel" id="vnPanel" hidden aria-labelledby="vnTit">
-  <div class="vn-cab">
+  <nav class="vn-nav" aria-label="Panel docente">
     <h2 id="vnTit" tabindex="-1">Panel docente</h2>
-    <span class="vn-quien" id="vnQuien"></span>
-    <button type="button" class="btn" id="vnSalir">Cerrar sesión</button>
-    <button type="button" class="btn" id="vnCerrar">Volver al simulador</button>
-    <div class="vn-tabs" role="tablist" aria-label="Secciones del panel">
-      <button type="button" class="vn-tab" role="tab" data-tab="casos" aria-controls="vn-casos">Casos</button>
-      <button type="button" class="vn-tab" role="tab" data-tab="imagenes" aria-controls="vn-imagenes">Imágenes</button>
-      <button type="button" class="vn-tab" role="tab" data-tab="docentes" aria-controls="vn-docentes">Docentes</button>
+    <p class="vn-grp">Evaluaciones</p>
+    <button type="button" class="vn-nav-it" data-vista="tepsi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg><span>TEPSI<small>Preescolar de 2 a 5 años</small></span></button>
+    <button type="button" class="vn-nav-it" data-vista="rn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="6" r="3"/><path d="M6 21c0-5 2.500-8 6-8s6 3 6 8M4 12l4 2M20 12l-4 2"/></svg><span>Reflejos<small>Recién nacido</small></span></button>
+    <button type="button" class="vn-nav-it" data-vista="exfis"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h6v4a3 3 0 0 1-6 0z"/><path d="M12 10v4a4 4 0 0 0 8 0v-2"/><circle cx="20" cy="10" r="2"/></svg><span>Examen físico<small>Recién nacido</small></span></button>
+    <p class="vn-grp">Aula</p>
+    <button type="button" class="vn-nav-it" data-vista="secciones"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.300 2.700-5.500 6-5.500s6 2.200 6 5.500M16 5.200a3.200 3.200 0 0 1 0 5.600M17.500 14.800c2.100.6 3.500 2.400 3.500 5.200"/></svg><span>Secciones<small>Asignar y ver resultados</small></span></button>
+    <div class="vn-pie">
+      <div class="vn-cuenta" id="vnCuenta" hidden><button type="button" class="vn-nav-it" data-vista="docentes">Docentes con acceso</button><button type="button" class="vn-nav-it" id="vnSalir">Cerrar sesión</button></div>
+      <button type="button" class="vn-nav-it" id="vnCuentaBtn" aria-expanded="false" aria-controls="vnCuenta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.600-6.500 8-6.500s8 2.500 8 6.500"/></svg><span id="vnQuien"></span></button>
+      <button type="button" class="btn" id="vnCerrar">Volver al simulador</button>
+    </div>
+  </nav>
+  <div class="vn-main">
+    <div class="vn-vista" id="vn-eval" hidden>
+      <header class="vn-enc"><div><h3 id="vnEvalTit"></h3><p id="vnEvalDesc"></p></div><button type="button" class="btn btn-primario" id="vnNuevo">Nuevo caso</button></header>
+      <div class="vn-tabs" role="tablist" aria-label="Contenido de la evaluación"><button type="button" class="vn-tab" role="tab" data-sub="casos">Casos</button><button type="button" class="vn-tab" role="tab" data-sub="imagenes">Imágenes</button></div>
+      <div class="vn-sub" id="vn-sub-casos"><div class="doc-cuerpo"><nav class="doc-lista" id="vnLista" aria-label="Casos"></nav><form class="doc-form" id="vnForm" autocomplete="off"></form></div></div>
+      <div class="vn-sub" id="vn-sub-imagenes" hidden><div class="vn-scroll">
+        <div class="vn-subir" id="vnSubir"><p>Arrastra imágenes aquí o elígelas desde tu equipo. Se reducen automáticamente antes de subir. No subas imágenes de pacientes reales sin anonimizar.</p>
+          <label class="btn btn-primario">Elegir imágenes<input type="file" id="vnArchivo" accept="image/*" multiple hidden></label></div>
+        <span class="doc-estado" id="vnSubEstado" role="status"></span>
+        <div class="vn-grilla" id="vnGrilla"></div></div></div>
+    </div>
+    <div class="vn-vista" id="vn-exfis" hidden>
+      <header class="vn-enc"><div><h3>Examen físico del recién nacido</h3><p>Imágenes clínicas por zona, tal como las ve el estudiante al recorrer el examen segmentario.</p></div></header>
+      <div class="doc-cuerpo"><nav class="doc-lista" id="vnZonas" aria-label="Zonas"></nav><div class="doc-form" id="vnZona"></div></div>
+    </div>
+    <div class="vn-vista" id="vn-secciones" hidden></div>
+    <div class="vn-vista" id="vn-docentes" hidden>
+      <header class="vn-enc"><div><h3>Docentes con acceso</h3><p>Estas personas pueden editar casos, imágenes y secciones. Para sumar a alguien, compártele el código de invitación del Centro: con él crea su cuenta desde el botón Docente.</p></div></header>
+      <div class="vn-scroll"><div id="vnDocentes"></div></div>
     </div>
   </div>
-  <div class="vn-vista" id="vn-casos" role="tabpanel"><div class="doc-cuerpo"><nav class="doc-lista" id="vnLista" aria-label="Casos"></nav><form class="doc-form" id="vnForm" autocomplete="off"></form></div></div>
-  <div class="vn-vista" id="vn-imagenes" role="tabpanel" hidden><div class="vn-scroll">
-    <div class="vn-subir" id="vnSubir"><p>Arrastra imágenes aquí o elígelas desde tu equipo. Se reducen automáticamente antes de subir. No subas imágenes de pacientes reales sin anonimizar.</p>
-      <label class="btn btn-primario">Elegir imágenes<input type="file" id="vnArchivo" accept="image/*" multiple hidden></label></div>
-    <span class="doc-estado" id="vnSubEstado" role="status"></span>
-    <div class="vn-grilla" id="vnGrilla"></div></div></div>
-  <div class="vn-vista" id="vn-docentes" role="tabpanel" hidden><div class="vn-scroll">
-    <p class="vn-vacio">Estas personas pueden editar casos e imágenes. Para sumar a alguien, compártele el código de invitación del Centro: con él crea su cuenta desde el botón Docente.</p>
-    <div id="vnDocentes"></div></div></div>
 </section>
 <dialog class="vn-dlg" id="vnDlgLogin" aria-labelledby="vnLoginTit"><form id="vnLoginForm">
   <h3 id="vnLoginTit">Ingreso docente</h3><p id="vnLoginAyuda"></p>
@@ -479,8 +559,18 @@ function montar() {
   $('#vnDocs').onclick = abrirDocs; $('#vnDocsCerrar').onclick = () => $('#vnDlgDocs').close();
   $('#vnCerrar').onclick = () => { cerrarPanel(); db.focus(); }; $('#vnSalir').onclick = salir;
   X.alMontar.forEach(f => f());
-  $('.vn-tabs').addEventListener('click', e => { const b = e.target.closest('.vn-tab'); if (b) irTab(b.dataset.tab); });
-  $('.vn-tabs').addEventListener('keydown', e => { if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return; const t = [...document.querySelectorAll('.vn-tab')], i = t.indexOf(document.activeElement); if (i < 0) return; const n = t[(i + (e.key === 'ArrowRight' ? 1 : t.length - 1)) % t.length]; n.focus(); n.click(); });
+  const P = $('#vnPanel');
+  P.addEventListener('click', e => {
+    const v = e.target.closest('[data-vista]'); if (v) return ir(v.dataset.vista);
+    const t = e.target.closest('#vn-eval .vn-tab'); if (t) ir(E.vista, t.dataset.sub);
+  });
+  P.addEventListener('keydown', e => { // flechas entre pestañas de un mismo grupo
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return; const g = e.target.closest('.vn-tabs'); if (!g) return;
+    const t = [...g.querySelectorAll('.vn-tab')], i = t.indexOf(document.activeElement); if (i < 0) return;
+    const n = t[(i + (e.key === 'ArrowRight' ? 1 : t.length - 1)) % t.length]; n.focus(); n.click();
+  });
+  $('#vnCuentaBtn').onclick = () => { const m = $('#vnCuenta'); m.hidden = !m.hidden; $('#vnCuentaBtn').setAttribute('aria-expanded', String(!m.hidden)); };
+  $('#vnNuevo').onclick = () => { ir(E.vista, 'casos'); formNuevo(); };
   $('#vnForm').onsubmit = e => E.ed && E.ed.tipo === 'nuevo' ? crearCaso(e) : guardarCaso(e);
   $('#vnLoginForm').onsubmit = enviarLogin; $('#vnLoginNo').onclick = () => $('#vnDlgLogin').close();
   $('#vnLoginCambio').onclick = () => abrirLogin(LOGIN[$('#vnDlgLogin').dataset.modo].a);
@@ -495,19 +585,16 @@ function montar() {
 }
 
 // Puntos de extensión para js/vsim-aula.js (secciones, asignaciones y resultados).
-// El modo docente del examen físico (administrar imágenes por zona) sigue la sesión del panel.
-function sincronizarExfis() { if (window.EXFIS && EXFIS.modoDocente) EXFIS.modoDocente(esDoc()); }
-const X = { E, MODS, $, esc, api, esDoc, porId, baseDe, variantes, nombreBase: (m, k) => nombreBase(m, k), enPantalla, irCaso, irTab: t => irTab(t), abrirPanel: () => abrirPanel(), tabs: {}, alDecorar: [], alMontar: [], alSesion: [] };
+const X = { E, MODS, $, esc, api, esDoc, porId, baseDe, variantes, nombreBase: (m, k) => nombreBase(m, k), enPantalla, irCaso, ir: (v, s) => ir(v, s), abrirPanel: () => abrirPanel(), tabs: {}, alDecorar: [], alMontar: [], alSesion: [] };
 window.VSIM = { variante: mod => E.activa[mod] || null, _: X };
-X.alSesion.push(sincronizarExfis);
 (async () => {
   if (!window.TEPSI_DOC && !window.RN_DOC) return;
   let j;
   try { j = await api('/api/auth'); } catch (e) { return; } // sin servidor configurado: el simulador sigue igual
   E.usuario = j.usuario;
   montar();
-  sincronizarExfis();
   revisarEnlaceClave();
   try { await recargar(); } catch (e) {}
+  cargarExfis();
 })();
 })();
