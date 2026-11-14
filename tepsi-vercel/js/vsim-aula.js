@@ -5,7 +5,7 @@
 'use strict';
 const X = window.VSIM && window.VSIM._; if (!X) return;
 const { E, MODS, $, esc, api } = X;
-const A = { yo: null, asign: [], llave: {}, clave: {}, t0: {}, enviado: {}, firma: {}, secciones: [], sel: null, res: null };
+const A = { yo: null, asign: [], llave: {}, clave: {}, t0: {}, enviado: {}, firma: {}, secciones: [], sel: null, sub: 'resultados', res: null };
 const uuid = () => crypto.randomUUID ? crypto.randomUUID() : ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
 const fCorta = v => v ? new Date(v).toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '';
 const fHora = v => new Date(v).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
@@ -113,37 +113,78 @@ function vigilarIntentos() {
   new MutationObserver(() => { const m = document.body.dataset.modulo; if (MODS[m] && !A.enviado[m]) A.t0[m] = Date.now(); }).observe(document.body, { attributes: true, attributeFilter: ['data-modulo'] });
 }
 
-/* ================= Docente: Secciones ================= */
+/* ================= Docente: Secciones =================
+   Cada sección reúne lo suyo: resultados, casos asignados, estudiantes y ajustes. */
 const opcionesCasos = () => Object.keys(MODS).filter(m => MODS[m].doc()).map(m => `<optgroup label="${MODS[m].nombre}">${MODS[m].doc().casos().map(c => `<option value="${m}|${c.k}|">${esc(c.nombre)} (original)</option>`).join('')}${E.casos.filter(c => c.modulo === m && !c.es_base && c.estado === 'publicado').map(c => `<option value="${m}|${c.base}|${c.id}">${esc(c.titulo)}</option>`).join('')}</optgroup>`).join('');
-async function cargarSecciones() {
-  const L = $('#vaSecciones');
-  try { A.secciones = (await api('/api/aula?secciones=1')).secciones || []; } catch (err) { L.innerHTML = `<p class="vn-vacio vn-error">${esc(err.message)}</p>`; return; }
-  L.innerHTML = A.secciones.length ? A.secciones.map(s => `<article class="va-sec" data-id="${s.id}">
-      <header><h3>${esc(s.nombre)}</h3><span class="vn-etq ${s.activa ? 'pub' : 'bor'}">${s.activa ? 'Ingreso abierto' : 'Ingreso cerrado'}</span></header>
-      <p class="va-cod"><span>Código para estudiantes</span><b>${esc(s.codigo)}</b><button type="button" class="btn" data-acc="copiar">Copiar</button></p>
-      <p class="nota">${s.estudiantes} ${s.estudiantes === 1 ? 'estudiante' : 'estudiantes'} · ${s.intentos} ${s.intentos === 1 ? 'intento' : 'intentos'}</p>
-      ${s.asignaciones.length ? `<ul class="va-lista">${s.asignaciones.map(a => `<li><div><strong>${esc(nombreCaso(a))}</strong><small>${MODS[a.modulo].nombre}${a.cierra ? ' · hasta el ' + fCorta(a.cierra) : ' · sin plazo'}</small></div><button type="button" class="btn" data-quitar="${a.id}">Quitar</button></li>`).join('')}</ul>` : '<p class="nota">Sin casos asignados: los estudiantes pueden practicar libremente y sus intentos igual se registran.</p>'}
-      <div class="va-asignar"><label class="campo"><span>Asignar caso</span><select name="caso">${opcionesCasos()}</select></label>
-        <label class="campo"><span>Plazo (opcional)</span><input type="date" name="cierra"></label><button type="button" class="btn" data-acc="asignar">Asignar</button></div>
-      <div class="vn-fila"><button type="button" class="btn btn-primario" data-acc="resultados">Ver resultados</button><button type="button" class="btn" data-acc="renombrar">Renombrar</button>
-        <button type="button" class="btn" data-acc="alternar">${s.activa ? 'Cerrar ingreso' : 'Reabrir ingreso'}</button><button type="button" class="btn vn-peligro" data-acc="borrar">Eliminar</button></div>
-    </article>`).join('') : '<p class="vn-vacio">Crea una sección por cada grupo de estudiantes. Cada una tiene un código: quien lo escribe en "Mi sección" queda inscrito y sus resultados llegan a la pestaña Resultados.</p>';
-  const st = $('#vaSecEstado'), post = async (cuerpo, ok) => { try { await api('/api/aula', 'POST', cuerpo); st.className = 'doc-estado'; st.textContent = ok || ''; await cargarSecciones(); } catch (err) { st.className = 'doc-estado vn-error'; st.textContent = err.message; } };
-  L.querySelectorAll('[data-quitar]').forEach(b => b.onclick = () => post({ accion: 'desasignar', id: b.dataset.quitar }, 'Caso quitado de la sección.'));
-  L.querySelectorAll('[data-acc]').forEach(b => b.onclick = async () => {
-    const art = b.closest('.va-sec'), s = A.secciones.find(x => x.id === art.dataset.id), acc = b.dataset.acc;
-    if (acc === 'copiar') { try { await navigator.clipboard.writeText(s.codigo); st.className = 'doc-estado'; st.textContent = `Código ${s.codigo} copiado.`; } catch (e) { st.textContent = `Código: ${s.codigo}`; } }
-    if (acc === 'asignar') { const [modulo, base, caso_id] = art.querySelector('[name=caso]').value.split('|'), f = art.querySelector('[name=cierra]').value; post({ accion: 'asignar', seccion_id: s.id, modulo, base, caso_id: caso_id || null, cierra: f ? new Date(f + 'T23:59:59').toISOString() : null }, 'Caso asignado.'); }
-    if (acc === 'renombrar') { const n = prompt('Nombre de la sección', s.nombre); if (n && n.trim()) post({ accion: 'seccion_editar', id: s.id, nombre: n, activa: s.activa }, 'Sección renombrada.'); }
-    if (acc === 'alternar') post({ accion: 'seccion_editar', id: s.id, nombre: s.nombre, activa: !s.activa }, s.activa ? 'Ingreso cerrado: el código ya no acepta estudiantes nuevos.' : 'Ingreso reabierto.');
-    if (acc === 'borrar') { if (confirm(`¿Eliminar la sección "${s.nombre}"? Se borran también sus ${s.estudiantes} estudiantes y ${s.intentos} intentos. No se puede deshacer.`)) post({ accion: 'seccion_borrar', id: s.id }, 'Sección eliminada.'); }
-    if (acc === 'resultados') { A.sel = s.id; X.irTab('resultados'); }
-  });
+const SUBS = [['resultados', 'Resultados'], ['asignados', 'Casos asignados'], ['estudiantes', 'Estudiantes'], ['ajustes', 'Ajustes']];
+function estado(t, error) { const st = $('#vaSecEstado'); if (st) { st.className = 'doc-estado' + (error ? ' vn-error' : ''); st.textContent = t || ''; } }
+async function post(cuerpo, ok) { try { const j = await api('/api/aula', 'POST', cuerpo); await renderSecciones(); estado(ok); return j; } catch (err) { estado(err.message, true); return null; } }
+
+async function renderSecciones() {
+  const L = $('#vaSecLista'), C = $('#vaSec');
+  try { A.secciones = (await api('/api/aula?secciones=1')).secciones || []; } catch (err) { C.innerHTML = `<p class="vn-vacio vn-error">${esc(err.message)}</p>`; return; }
+  if (!A.secciones.some(s => s.id === A.sel)) A.sel = A.secciones.length ? A.secciones[0].id : null;
+  L.innerHTML = A.secciones.length ? '<p class="doc-grupo">Mis secciones</p>' + A.secciones.map(s => `<button type="button" class="doc-it${s.id === A.sel ? ' on' : ''}" data-sec="${s.id}">${esc(s.nombre)}${s.activa ? '' : '<span class="vn-etq bor">Cerrada</span>'}</button>`).join('') : '';
+  L.querySelectorAll('[data-sec]').forEach(b => b.onclick = () => { A.sel = b.dataset.sec; A.res = null; renderSecciones(); });
+  if (!A.sel) { C.innerHTML = '<p class="vn-vacio">Crea una sección por cada grupo de estudiantes. Cada una tiene un código: quien lo escribe en «Mi sección» queda inscrito, ve los casos que le asignes y sus resultados llegan aquí.</p>'; return; }
+  await renderSeccion();
+}
+async function renderSeccion() {
+  const s = A.secciones.find(x => x.id === A.sel), C = $('#vaSec'); if (!s) return;
+  if (!A.res || A.res.id !== s.id) { try { A.res = Object.assign(await api('/api/aula?resultados=' + s.id), { id: s.id }); } catch (err) { C.innerHTML = `<p class="vn-vacio vn-error">${esc(err.message)}</p>`; return; } }
+  const R = A.res, n = { asignados: R.asignaciones.length, estudiantes: R.estudiantes.length };
+  C.innerHTML = `<div class="va-sec-cab"><div><h3>${esc(s.nombre)}</h3>
+      <p class="va-cod"><span>Código para estudiantes</span><b>${esc(s.codigo)}</b><button type="button" class="btn" id="vaCopiar">Copiar</button><span class="vn-etq ${s.activa ? 'pub' : 'bor'}">${s.activa ? 'Ingreso abierto' : 'Ingreso cerrado'}</span></p></div></div>
+    <div class="vn-tabs" role="tablist" aria-label="Contenido de la sección">${SUBS.map(([k, t]) => `<button type="button" class="vn-tab" role="tab" data-secsub="${k}" aria-selected="${k === A.sub}" tabindex="${k === A.sub ? 0 : -1}">${t}${n[k] != null ? ` (${n[k]})` : ''}</button>`).join('')}</div>
+    <span class="doc-estado" id="vaSecEstado" role="status"></span>
+    <div class="va-res" id="vaSub"></div>`;
+  C.querySelectorAll('[data-secsub]').forEach(b => b.onclick = () => { A.sub = b.dataset.secsub; renderSeccion(); });
+  $('#vaCopiar').onclick = async () => { try { await navigator.clipboard.writeText(s.codigo); estado(`Código ${s.codigo} copiado.`); } catch (e) { estado(`Código: ${s.codigo}`); } };
+  ({ resultados: subResultados, asignados: subAsignados, estudiantes: subEstudiantes, ajustes: subAjustes })[A.sub](s, R, $('#vaSub'));
+}
+const porEst = (R, id) => R.intentos.filter(i => i.estudiante_id === id);
+const hizo = (R, id, a) => porEst(R, id).some(i => asigDe(R, i) === a);
+
+function subResultados(s, R, C) {
+  const completos = R.estudiantes.filter(e => R.asignaciones.length && R.asignaciones.every(a => hizo(R, e.id, a))).length;
+  const caja = (n, t) => `<div class="va-caja"><b>${n}</b><span>${t}</span></div>`;
+  let h = `<div class="va-barra"><div class="va-cajas">${caja(R.estudiantes.length, 'estudiantes inscritos')}${caja(R.intentos.length, 'intentos enviados')}${R.asignaciones.length ? caja(`${completos} de ${R.estudiantes.length}`, 'completaron lo asignado') : ''}</div>
+    <button type="button" class="btn" id="vaCsv" ${R.intentos.length ? '' : 'disabled'}>Exportar a Excel (CSV)</button><button type="button" class="btn" id="vaAct">Actualizar</button></div>`;
+  if (!R.estudiantes.length) h += '<p class="vn-vacio">Todavía no hay estudiantes inscritos. Comparte el código de la sección para que entren desde el botón «Mi sección».</p>';
+  else {
+    if (R.asignaciones.length) h += `<div class="va-scrollx"><table class="vn-tabla va-matriz"><thead><tr><th>Estudiante</th>${R.asignaciones.map(a => `<th>${esc(nombreCaso(a))}<br><small>${MODS[a.modulo].nombre}</small></th>`).join('')}</tr></thead><tbody>${R.estudiantes.map(e => `<tr><td>${esc(e.nombre)}</td>${R.asignaciones.map(a => { const is = porEst(R, e.id).filter(i => asigDe(R, i) === a), u = is[is.length - 1]; return `<td>${u ? `${esc(resumen(u)) || 'Enviado'}${is.length > 1 ? `<br><small>${is.length} intentos, se muestra el último</small>` : ''}${tarde(R, u) ? '<br><span class="vn-etq bor">Fuera de plazo</span>' : ''}` : '<span class="va-nada">Pendiente</span>'}</td>`; }).join('')}</tr>`).join('')}</tbody></table></div>`;
+    else h += '<p class="nota">Esta sección no tiene casos asignados: lo que los estudiantes practiquen aparece abajo como práctica libre.</p>';
+    h += '<h3 class="va-h">Detalle por estudiante</h3>' + R.estudiantes.map(e => { const is = porEst(R, e.id); return `<details class="va-est"><summary><strong>${esc(e.nombre)}</strong><span>${is.length} ${is.length === 1 ? 'intento' : 'intentos'}</span></summary>
+      ${is.length ? is.map(i => `<div class="va-int"><p><strong>${esc(i.caso_titulo || i.base)}</strong>, ${MODS[i.modulo].nombre}, ${fHora(i.creado)}, ${minutos(i.segundos)}${asigDe(R, i) ? '' : ' (práctica libre)'}${tarde(R, i) ? ' <span class="vn-etq bor">Fuera de plazo</span>' : ''}</p><p>${esc(resumen(i)) || 'Sin puntajes'}</p>${detalleHTML(i)}</div>`).join('') : '<p class="nota">Aún no envía intentos.</p>'}</details>`; }).join('');
+    h += '<p class="nota">Los puntajes muestran cuántos elementos coinciden con lo esperado en el caso. No son una nota: la calificación la define cada docente.</p>';
+  }
+  C.innerHTML = h;
+  $('#vaCsv').onclick = exportarCSV; $('#vaAct').onclick = () => { A.res = null; renderSeccion(); };
+}
+function subAsignados(s, R, C) {
+  C.innerHTML = `${s.asignaciones.length ? `<ul class="va-lista">${s.asignaciones.map(a => { const n = R.estudiantes.filter(e => hizo(R, e.id, a)).length; return `<li><div><strong>${esc(nombreCaso(a))}</strong><small>${MODS[a.modulo].nombre}, ${a.cierra ? 'hasta el ' + fCorta(a.cierra) : 'sin plazo'}. Lo hicieron ${n} de ${R.estudiantes.length}.</small></div><button type="button" class="btn" data-quitar="${a.id}">Quitar</button></li>`; }).join('')}</ul>` : '<p class="vn-vacio">Sin casos asignados. Los estudiantes pueden practicar libremente y sus intentos igual se registran.</p>'}
+    <div class="va-asignar"><label class="campo"><span>Caso</span><select id="vaCaso">${opcionesCasos()}</select></label>
+      <label class="campo"><span>Plazo (opcional)</span><input type="date" id="vaCierra"></label><button type="button" class="btn btn-primario" id="vaAsignar">Asignar caso</button></div>
+    <p class="nota">Se pueden asignar los casos originales y los casos nuevos que estén publicados. El plazo no bloquea: un intento posterior queda marcado «Fuera de plazo».</p>`;
+  C.querySelectorAll('[data-quitar]').forEach(b => b.onclick = () => { A.res = null; post({ accion: 'desasignar', id: b.dataset.quitar }, 'Caso quitado de la sección.'); });
+  $('#vaAsignar').onclick = () => { const [modulo, base, caso_id] = $('#vaCaso').value.split('|'), f = $('#vaCierra').value; A.res = null; post({ accion: 'asignar', seccion_id: s.id, modulo, base, caso_id: caso_id || null, cierra: f ? new Date(f + 'T23:59:59').toISOString() : null }, 'Caso asignado.'); };
+}
+function subEstudiantes(s, R, C) {
+  C.innerHTML = R.estudiantes.length ? `<div class="va-scrollx"><table class="vn-tabla va-matriz"><thead><tr><th>Estudiante</th><th>Correo</th><th>Se inscribió</th><th>Intentos</th>${R.asignaciones.length ? '<th>Casos asignados hechos</th>' : ''}</tr></thead><tbody>${R.estudiantes.map(e => `<tr><td>${esc(e.nombre)}</td><td>${esc(e.email)}</td><td>${fCorta(e.creado)}</td><td>${porEst(R, e.id).length}</td>${R.asignaciones.length ? `<td>${R.asignaciones.filter(a => hizo(R, e.id, a)).length} de ${R.asignaciones.length}</td>` : ''}</tr>`).join('')}</tbody></table></div>`
+    : '<p class="vn-vacio">Todavía no hay estudiantes inscritos. Comparte el código de la sección para que entren desde el botón «Mi sección».</p>';
+}
+function subAjustes(s, R, C) {
+  C.innerHTML = `<form class="va-nueva" id="vaRenombrar"><label class="campo"><span>Nombre de la sección</span><input type="text" name="nombre" maxlength="120" required value="${esc(s.nombre)}"></label><button type="submit" class="btn">Guardar nombre</button></form>
+    <div class="va-ajuste"><div><strong>${s.activa ? 'Ingreso abierto' : 'Ingreso cerrado'}</strong><p class="nota">${s.activa ? 'Cualquiera con el código puede inscribirse.' : 'El código no acepta estudiantes nuevos. Quienes ya están inscritos siguen enviando resultados.'}</p></div><button type="button" class="btn" id="vaAlternar">${s.activa ? 'Cerrar ingreso' : 'Reabrir ingreso'}</button></div>
+    <div class="va-ajuste"><div><strong>Eliminar sección</strong><p class="nota">Se borran también sus ${s.estudiantes} estudiantes y ${s.intentos} intentos. No se puede deshacer.</p></div><button type="button" class="btn vn-peligro" id="vaBorrar">Eliminar sección</button></div>`;
+  $('#vaRenombrar').onsubmit = e => { e.preventDefault(); post({ accion: 'seccion_editar', id: s.id, nombre: e.target.nombre.value, activa: s.activa }, 'Nombre guardado.'); };
+  $('#vaAlternar').onclick = () => post({ accion: 'seccion_editar', id: s.id, nombre: s.nombre, activa: !s.activa }, s.activa ? 'Ingreso cerrado.' : 'Ingreso reabierto.');
+  $('#vaBorrar').onclick = () => { if (confirm(`¿Eliminar la sección "${s.nombre}"? Se borran también sus ${s.estudiantes} estudiantes y ${s.intentos} intentos. No se puede deshacer.`)) { A.res = null; A.sel = null; post({ accion: 'seccion_borrar', id: s.id }, 'Sección eliminada.'); } };
 }
 async function crearSeccion(e) {
-  e.preventDefault(); const f = e.target, st = $('#vaSecEstado');
-  try { const j = await api('/api/aula', 'POST', { accion: 'seccion', nombre: f.nombre.value }); f.reset(); st.className = 'doc-estado'; st.textContent = `Sección creada. Código para estudiantes: ${j.codigo}`; await cargarSecciones(); }
-  catch (err) { st.className = 'doc-estado vn-error'; st.textContent = err.message; }
+  e.preventDefault(); const f = e.target;
+  try { const j = await api('/api/aula', 'POST', { accion: 'seccion', nombre: f.nombre.value }); f.reset(); A.sel = j.id; A.sub = 'asignados'; A.res = null; await renderSecciones(); estado(`Sección creada. Código para estudiantes: ${j.codigo}`); }
+  catch (err) { alert(err.message); }
 }
 
 /* ================= Docente: Resultados ================= */
@@ -164,29 +205,6 @@ function detalleHTML(i) {
   if (d.entrevista && d.entrevista.charla.length) h += `<details><summary>Entrevista (${d.entrevista.preguntas} ${d.entrevista.preguntas === 1 ? 'pregunta' : 'preguntas'})</summary><div class="va-chat">${d.entrevista.charla.map(m => `<p><b>${m.quien === 'est' ? 'Estudiante' : 'Madre'}:</b> ${esc(m.txt)}</p>`).join('')}</div></details>`;
   return h || '<p class="nota">Sin detalle.</p>';
 }
-async function cargarResultados() {
-  const S = $('#vaResSel'), C = $('#vaRes');
-  if (!A.secciones.length) { try { A.secciones = (await api('/api/aula?secciones=1')).secciones || []; } catch (e) {} }
-  if (!A.secciones.length) { S.innerHTML = ''; S.disabled = true; $('#vaCsv').disabled = true; C.innerHTML = '<p class="vn-vacio">Primero crea una sección en la pestaña Secciones.</p>'; return; }
-  if (!A.secciones.some(s => s.id === A.sel)) A.sel = A.secciones[0].id;
-  S.disabled = false; S.innerHTML = A.secciones.map(s => `<option value="${s.id}" ${s.id === A.sel ? 'selected' : ''}>${esc(s.nombre)}</option>`).join('');
-  C.innerHTML = '<p class="vn-vacio">Cargando…</p>';
-  let R; try { R = await api('/api/aula?resultados=' + A.sel); } catch (err) { C.innerHTML = `<p class="vn-vacio vn-error">${esc(err.message)}</p>`; return; }
-  A.res = R; $('#vaCsv').disabled = !R.intentos.length;
-  const porEst = id => R.intentos.filter(i => i.estudiante_id === id);
-  const hecha = (id, a) => porEst(id).some(i => asigDe(R, i) === a);
-  const completos = R.estudiantes.filter(e => R.asignaciones.length && R.asignaciones.every(a => hecha(e.id, a))).length;
-  const caja = (n, t) => `<div class="va-caja"><b>${n}</b><span>${t}</span></div>`;
-  let h = `<div class="va-cajas">${caja(R.estudiantes.length, 'estudiantes inscritos')}${caja(R.intentos.length, 'intentos enviados')}${R.asignaciones.length ? caja(`${completos}/${R.estudiantes.length}`, 'completaron todo lo asignado') : ''}</div>`;
-  if (R.asignaciones.length && R.estudiantes.length) {
-    h += `<div class="va-scrollx"><table class="vn-tabla va-matriz"><thead><tr><th>Estudiante</th>${R.asignaciones.map(a => `<th>${esc(nombreCaso(a))}<br><small>${MODS[a.modulo].nombre}</small></th>`).join('')}</tr></thead><tbody>${R.estudiantes.map(e => `<tr><td>${esc(e.nombre)}</td>${R.asignaciones.map(a => { const is = porEst(e.id).filter(i => asigDe(R, i) === a), u = is[is.length - 1]; return `<td>${u ? `${esc(resumen(u)) || 'Enviado'}${is.length > 1 ? `<br><small>${is.length} intentos · último</small>` : ''}${tarde(R, u) ? '<br><span class="vn-etq bor">Fuera de plazo</span>' : ''}` : '<span class="va-nada">Pendiente</span>'}</td>`; }).join('')}</tr>`).join('')}</tbody></table></div>`;
-  }
-  h += R.estudiantes.length ? `<h3 class="va-h">Detalle por estudiante</h3>` + R.estudiantes.map(e => { const is = porEst(e.id); return `<details class="va-est"><summary><strong>${esc(e.nombre)}</strong><span>${esc(e.email)} · ${is.length} ${is.length === 1 ? 'intento' : 'intentos'}</span></summary>
-      ${is.length ? is.map(i => `<div class="va-int"><p><strong>${esc(i.caso_titulo || i.base)}</strong> · ${MODS[i.modulo].nombre} · ${fHora(i.creado)} · ${minutos(i.segundos)}${asigDe(R, i) ? '' : ' · práctica libre'}${tarde(R, i) ? ' · <span class="vn-etq bor">Fuera de plazo</span>' : ''}</p><p>${esc(resumen(i)) || 'Sin puntajes'}</p>${detalleHTML(i)}</div>`).join('') : '<p class="nota">Aún no envía intentos.</p>'}</details>`; }).join('')
-    : '<p class="vn-vacio">Todavía no hay estudiantes inscritos. Comparte el código de la sección para que entren desde el botón "Mi sección".</p>';
-  h += '<p class="nota">Los puntajes muestran cuántos elementos coinciden con lo esperado en el caso. No son una nota: la calificación la define cada docente.</p>';
-  C.innerHTML = h;
-}
 function exportarCSV() {
   const R = A.res; if (!R) return;
   const s = A.secciones.find(x => x.id === A.sel), q = v => `"${String(v ?? '').replace(/"/g, '""')}"`, n = (d, k, c) => d && d[k] ? d[k][c] : '';
@@ -203,21 +221,14 @@ function exportarCSV() {
 X.alMontar.push(() => {
   $('#vnDocs').insertAdjacentHTML('beforebegin', '<button class="inicio-btn" id="vnAula" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><path d="M16 5.2a3.2 3.2 0 0 1 0 5.6"/><path d="M17.5 14.8c2.1.6 3.5 2.4 3.5 5.2"/></svg><span id="vnAulaTxt">Mi sección</span></button>');
   document.body.insertAdjacentHTML('beforeend', `<dialog class="vn-dlg va-dlg" id="vaDlg" aria-labelledby="vaTit"><form id="vaCuerpo"></form></dialog><div class="va-aviso" id="vaAviso" role="status" hidden></div>`);
-  $('.vn-tab[data-tab="docentes"]').insertAdjacentHTML('beforebegin', '<button type="button" class="vn-tab" role="tab" data-tab="secciones" aria-controls="vn-secciones">Secciones</button><button type="button" class="vn-tab" role="tab" data-tab="resultados" aria-controls="vn-resultados">Resultados</button>');
-  $('#vnPanel').insertAdjacentHTML('beforeend', `
-  <div class="vn-vista" id="vn-secciones" role="tabpanel" hidden><div class="vn-scroll">
-    <form class="va-nueva" id="vaNueva"><label class="campo"><span>Nueva sección (por ejemplo, "Pediatría 2026-2 · Sección 3")</span><input type="text" name="nombre" maxlength="120" required></label><button type="submit" class="btn btn-primario">Crear sección</button></form>
-    <span class="doc-estado" id="vaSecEstado" role="status"></span>
-    <div class="va-secs" id="vaSecciones"></div></div></div>
-  <div class="vn-vista" id="vn-resultados" role="tabpanel" hidden><div class="vn-scroll">
-    <div class="va-barra"><label class="campo"><span>Sección</span><select id="vaResSel"></select></label><button type="button" class="btn" id="vaCsv" disabled>Exportar a Excel (CSV)</button><button type="button" class="btn" id="vaAct">Actualizar</button></div>
-    <div id="vaRes" class="va-res"></div></div></div>`);
+  $('#vn-secciones').innerHTML = `
+    <header class="vn-enc"><div><h3>Secciones</h3><p>Un grupo de estudiantes por sección: asígnale casos y revisa ahí mismo sus resultados.</p></div>
+      <form class="va-nueva" id="vaNueva"><label class="campo"><span>Nueva sección</span><input type="text" name="nombre" maxlength="120" required placeholder="Pediatría 2026-2, sección 3"></label><button type="submit" class="btn btn-primario">Crear sección</button></form></header>
+    <div class="doc-cuerpo"><nav class="doc-lista" id="vaSecLista" aria-label="Secciones"></nav><div class="doc-form va-sec-panel" id="vaSec"></div></div>`;
   $('#vnAula').onclick = () => { pintarAula(); $('#vaDlg').showModal(); };
   $('#vaCuerpo').onsubmit = unirse;
   $('#vaNueva').onsubmit = crearSeccion;
-  $('#vaResSel').onchange = e => { A.sel = e.target.value; cargarResultados(); };
-  $('#vaAct').onclick = cargarResultados; $('#vaCsv').onclick = exportarCSV;
-  X.tabs.secciones = cargarSecciones; X.tabs.resultados = cargarResultados;
+  X.tabs.secciones = () => { A.res = null; renderSecciones(); };
   X.alDecorar.push(alCambiar); X.alSesion.push(pintarBotonAula);
   vigilarIntentos(); pintarBotonAula(); cargarYo();
 });

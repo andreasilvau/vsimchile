@@ -758,14 +758,7 @@ body:not(.lado) #exfisPanel.min,#exfisPanel.min{height:auto}
   </section>
 
   <!-- Modal docente -->
-  <dialog class="ef-docente-dialog" id="efDocenteDialog">
-    <form method="dialog" class="ef-docente-form">
-      <h3>🔒 Acceso docente</h3>
-      <p>Ingresa la clave para administrar imágenes clínicas por zona.</p>
-      <label>Clave docente<input type="password" id="efDocClave" autocomplete="off" placeholder="••••••"></label>
-      <div class="ef-docente-btns"><button type="button" onclick="this.closest('dialog').close()">Cancelar</button><button type="submit" class="btn btn-primario" style="padding:8px 20px;min-height:auto">Entrar</button></div>
-    </form>
-  </dialog>
+
 </div>
 
 <script>
@@ -2984,13 +2977,12 @@ const ZONAS=[
 let efScene,efCamera,efRenderer,efMesh,efCanvas,efIniciado=false;
 const zonasVistas=new Set();
 let zonaActiva=null;
-let esDocente=false;
-const CLAVE_DOCENTE='exfis2024';
-const LS_KEY='efDocImg';
+const esDocente=false; /* las imágenes se administran en el panel docente */
+let efNube=null;
 
 /* ---------- Almacén de imágenes docente (localStorage) ---------- */
-function getImgs(){try{return JSON.parse(localStorage.getItem(LS_KEY))||{};}catch(e){return {};}}
-function saveImgs(d){try{localStorage.setItem(LS_KEY,JSON.stringify(d));}catch(e){}}
+function getImgs(){return efNube||{};}
+function saveImgs(){}
 
 /* ---------- Panel: lista de zonas ---------- */
 function renderListaZonas(){
@@ -3238,17 +3230,6 @@ function iniciar(){
     p.classList.toggle('min');minBtn.setAttribute('aria-expanded',String(!p.classList.contains('min')));
   };
 
-  /* Docente dialog */
-  const dlg=document.getElementById('efDocenteDialog');
-  if(dlg)dlg.querySelector('form').onsubmit=ev=>{
-    ev.preventDefault();
-    const c=document.getElementById('efDocClave');
-    if(c&&c.value===CLAVE_DOCENTE){esDocente=true;dlg.close();
-      const tit=document.getElementById('efPanelTit');if(tit)tit.innerHTML='Examen físico del RN <span class="ef-docente-badge">Docente</span>';
-      renderListaZonas();
-    }else{alert('Clave incorrecta');if(c)c.value='';}
-  };
-
   renderListaZonas();resize();
   new ResizeObserver(resize).observe(visor);
 }
@@ -3431,10 +3412,9 @@ function colocarHotspots(){
 window.EXFIS={
   iniciar,
   volver(){zonaActiva=null;renderListaZonas();colocarHotspots();},
-  docente(){const d=document.getElementById('efDocenteDialog');if(d)d.showModal();},
-  modoDocente(v){v=!!v;if(v===esDocente)return;esDocente=v;
-    const tit=document.getElementById('efPanelTit');if(tit)tit.innerHTML='Examen físico del RN'+(v?' <span class="ef-docente-badge">Docente</span>':'');
-    if(zonaActiva)mostrarZona(zonaActiva);else renderListaZonas();},
+  zonas:()=>ZONAS.map(z=>({id:z.id,nombre:z.nombre,ico:z.ico})),
+  /* imágenes por zona que llegan del servidor: {zona:[{src,titulo,esNormal}]} */
+  imagenes(d){efNube=d||{};if(zonaActiva&&document.getElementById('efContenido'))mostrarZona(zonaActiva);},
   _dbg:()=>({efBones,efCamera,efMesh,efModelo,EF_HSPOT})
 };
 })();
